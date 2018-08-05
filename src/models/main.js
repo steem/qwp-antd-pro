@@ -169,6 +169,7 @@ export default {
       if (settings.enableHeaderNav) newState.hasHeader = true;
       newState.inited = true;
       newState.failed = !passportRes.success;
+      newState.topComponent = uri.rootComponent();
       if (!newState.user) newState.user = oldState.user;
       yield put({
         type: 'updateState',
