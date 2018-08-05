@@ -46,10 +46,21 @@ npm run lint
 ```
 
 自动生成代码：
+
 ```bash
 npm run crud -- --path=system/user/sample --model=sampleModel
 ```
+
 --model是可选的参数，如果未填，则取path参数的最后一项
+
+自动生成dev模式下的router代码：
+
+```bash
+npm run router:php
+```
+
+router:java需根据java后端框架自行编写代码来实现
+
 
 项目部署：
 
