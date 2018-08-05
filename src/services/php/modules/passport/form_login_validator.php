@@ -1,0 +1,17 @@
+<?php
+$form_rule = array(
+    'cssSelector' => '#form-signin',
+    'name' => 'login',
+    'rules' => array(
+        'user' => array(
+            'required' => true,
+            'alphanumeric' => true,
+            'rangelength' => array(3, 32),
+        ),
+        'pwd' => array(
+            'required' => true,
+            'rangelength' => array(6, 32),
+            'password' => true,
+        ),
+    ),
+);

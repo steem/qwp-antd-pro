@@ -1,0 +1,51 @@
+html,
+body,
+:global(#root) {
+  height: 100%;
+}
+
+:global(.ant-layout) {
+  min-height: 100%;
+}
+
+canvas {
+  display: block;
+}
+
+body {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.globalSpin {
+  width: 100%;
+  margin: 40px 0 !important;
+}
+
+// temp fix for https://github.com/ant-design/ant-design/commit/a1fafb5b727b62cb0be29ce6e9eca8f579d4f8b7
+:global {
+  .ant-spin-container {
+    overflow: visible !important;
+  }
+  .ant-modal {
+    top: 20px!important;
+    .ant-modal-body {
+      padding: 20px 12px;
+    }
+  }
+  .ant-table-selection-column {
+    min-width: 32px!important;
+    width: 32px!important;
+    padding: 16px 8px!important;
+  }
+  .ant-tabs-tab {
+    margin: 0 16px 0 0!important;
+  }
+  .ant-drawer-body {
+    .ant-row {
+      margin-left: 0!important;
+      margin-right: 0!important;
+    }
+  }
+}
