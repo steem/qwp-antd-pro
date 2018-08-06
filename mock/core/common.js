@@ -158,9 +158,10 @@ const orgIds = [
 let genOrgIdIdx = 0
 
 const orgListData = Mock.mock({
-  'data|80-100': [{
+  'data|60-90': [{
     id () {
-      return orgIds[genOrgIdIdx++]
+      genOrgIdIdx += 1;
+      return orgIds[genOrgIdIdx];
     },
     name: '@name',
     createTime: '@datetime',
@@ -168,27 +169,6 @@ const orgListData = Mock.mock({
 })
 
 const orgData = orgListData.data
-
-const usersListData = Mock.mock({
-  'data|1000-3000': [{
-      id: '@id',
-      name: '@name',
-      account: '@string(lower, 6, 12)',
-      nick_name: '@last',
-      role: "@pick(['1', '2'])",
-      phone: /^1[34578]\d{9}$/,
-      'age|11-99': 1,
-      address: '@county(true)',
-      'gender|1': ['m', 'f'],
-      email: '@email',
-      create_time: '@datetime',
-      password: '@string(6, 10)',
-      org() {
-        return orgData[Mock.Random.integer(0, orgData.length - 1)].id
-      },
-    },
-  ],
-})
 
 function P (req, name, defaultValue) {
   const { query, body } = req
@@ -203,8 +183,6 @@ function PB (req, name, defaultValue) {
   return defaultValue
 }
 
-const userData = usersListData.data
-
 module.exports = {
   queryArray,
   NOTFOUND,
@@ -212,7 +190,6 @@ module.exports = {
   lang: 'zhCN',
   inDebug: () => false,
   orgData,
-  userData,
   P,
   PB,
 }

@@ -157,7 +157,7 @@ export default class TableList extends PureComponent {
       return;
     }
     if (this.state.isEdit) {
-      fields.id = this.props.users.selectedRows[0].id;
+      fields.id = this.state.user ? this.state.user.id : this.props.users.selectedRows[0].id;
     }
     this.props.dispatch({
       type: `users/${this.state.isEdit ? 'edit' : 'create'}`,

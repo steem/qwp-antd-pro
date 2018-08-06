@@ -95,7 +95,7 @@ function main() {
   replaceCode(path.join(crudPath, 'user.less'), modulePath + '.less');
   replaceCode(path.join(crudPath, 'UserDialog.js'), path.join(moduleDir, objectUpperCaseName + 'Dialog.js'));
   replaceCode(path.join(crudPath, 'user_model.js'), path.join(modelsPath, modelName + '.js'));
-  replaceCode(path.join(crudPath, 'user_mock.js'), path.join(mockServicePath, modelName + '.js'));
+  fs.copyFileSync(path.join(crudPath, 'user_mock.js'), path.join(mockServicePath, modelName + '.js'));
   replaceRequestCode();
   replaceMockCode();
   replaceMockServiceCode();

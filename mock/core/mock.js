@@ -1,3 +1,4 @@
+const { _ } = require('lodash');
 const mocks = require('./services')
 const { lang } = require('./common');
 
@@ -93,8 +94,12 @@ function mockFns(req, res) {
   } else if ((!m || m === '/') && op === '$') {
     fn = echoSettings
   }
-  if (fn) fn(req, res)
-  else res.status(400).end(JSON.stringify(mocks))
+  if (fn) {
+    if (_.isFunction(fn)) fn(req, res);
+    else res.json(fn);
+  } else {
+    res.status(400).end(JSON.stringify(mocks));
+  }
 }
 
 export function setupMocks(services) {
