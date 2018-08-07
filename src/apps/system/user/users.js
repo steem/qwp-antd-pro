@@ -284,32 +284,33 @@ export default class TableList extends PureComponent {
 
     const { modalVisible } = this.state;
 
-    const columns = createTableColumn(settings.tables.user, {
-      render: {
-        name (text, record, ui) {
-          return (
-            <RandomAvatar text={record.nick_name.substr(0, 1)}>
-              <a title={l('Click to update user information')} onClick={() => ui.editUser(record, true)}>{text}</a>
-            </RandomAvatar>
-          );
+    if (!this.columns) {
+      this.columns = createTableColumn(settings.tables.user, {
+        render: {
+          name (text, record, ui) {
+            return (
+              <RandomAvatar text={record.nick_name.substr(0, 1)}>
+                <a title={l('Click to update user information')} onClick={() => ui.editUser(record, true)}>{text}</a>
+              </RandomAvatar>
+            );
+          },
+          detail (text, r) {
+            return (<span>{ r.gender === 'm' ? 'Male' : 'Female' } <br /> { r.nick_name } { r.age }</span>)
+          },
+          operation (text, record, ui) {
+            return (
+              <DropOption 
+                onMenuClick={e => ui.handleMenuClick(record, e)}
+                menuOptions={[{ key: 'edit', name: l('Edit') }, { key: 'remove', name: l('Delete') }]}
+              />
+            )
+          },
         },
-        detail (text, r) {
-          return (<span>{ r.gender === 'm' ? 'Male' : 'Female' } <br /> { r.nick_name } { r.age }</span>)
+        className: {
+          avatar: styles.avatar,
         },
-        operation (text, record, ui) {
-          return (
-            <DropOption 
-              onMenuClick={e => ui.handleMenuClick(record, e)}
-              menuOptions={[{ key: 'edit', name: l('Edit') }, { key: 'remove', name: l('Delete') }]}
-            />
-          )
-        },
-      },
-      className: {
-        avatar: styles.avatar,
-      },
-    }, this);
-
+      }, this);
+    }
     const menu = (
       <Menu onClick={e => this.handleMenuClick(null, e)} selectedKeys={[]}>
         <Menu.Item key="role">设置角色</Menu.Item>
@@ -364,7 +365,7 @@ export default class TableList extends PureComponent {
             selectedRows={users.selectedRows}
             loading={loading.effects['users/init'] || loading.effects['users/fetch']}
             data={data}
-            columns={columns}
+            columns={this.columns}
             onSelectRow={this.handleSelectRows}
             onChange={this.handleStandardTableChange}
           />

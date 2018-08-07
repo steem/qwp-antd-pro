@@ -7,21 +7,22 @@ function createColumn(item, colOptions, context) {
     title: item[1] ? l(item[1]) : '',
     width: item[2],
   }
-  if (item[0]) {
-    col.key = item[0];
-    col.dataIndex = item[0];
+  const dataIndex = item[0];
+  if (dataIndex) {
+    col.key = dataIndex;
+    col.dataIndex = dataIndex;
   }
   if (item[3]) {
-    if (colOptions && colOptions.sorter && colOptions.sorter[item[0]]) col.sorter = colOptions.sorter[item[0]];
+    if (colOptions && colOptions.sorter && colOptions.sorter[dataIndex]) col.sorter = colOptions.sorter[dataIndex];
     else col.sorter = true;
   }
   if (colOptions) {
-    if (item.length >= 5) {
-      const render = colOptions.render[item[4] === true ? item[0] : item[4]];
+    if (colOptions.render[dataIndex] || colOptions.render[item[4]]) {
+      const render = colOptions.render[item[4]] || colOptions.render[dataIndex];
       col.render = context ? (t, r) => render(t, r, context) : render;
     }
     if (item.length >= 6) {
-      col.className = colOptions.className[item[5] === true ? item[0] : item[5]];
+      col.className = colOptions.className[item[5] === true ? dataIndex : item[5]];
     }
   }
   return col;

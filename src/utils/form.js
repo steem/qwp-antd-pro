@@ -202,6 +202,34 @@ export function getFieldDecorator(form, settings, formName, name, values, op) {
   return form.getFieldDecorator(name, createFieldRules(settings, formName, name, values, op))
 }
 
+function isMomentObject(o) {
+  return o && o.constructor && o.constructor.name === 'Moment';
+}
+
+function getDateTimeValue(o) {
+  return o.format('YYYY-MM-DD HH:mm:ss');
+}
+
+function formalizedFormValue(values) {
+  for (const k in values) {
+    if (values[k] && values[k].constructor) {
+      const name = values[k].constructor.name;
+      if (name === 'Moment') {
+        values[k] = getDateTimeValue(values[k]);
+      } else if (name === 'Array') {
+        if (values[k].length === 2) {
+          if (isMomentObject(values[k][0])) {
+            values[k][0] = getDateTimeValue(values[k][0]);
+          }
+          if (isMomentObject(values[k][1])) {
+            values[k][1] = getDateTimeValue(values[k][1]);
+          }
+        }
+      }
+    }
+  }
+}
+
 export function createSubmitHander (form, onSubmit, activeFields, dataKey, beforeSubmit) {
   const resetFields = () => form.resetFields();
   if (activeFields) {
@@ -209,6 +237,7 @@ export function createSubmitHander (form, onSubmit, activeFields, dataKey, befor
       e.preventDefault();
       const fields = _.isFunction(activeFields) ? activeFields() : activeFields;
       form.validateFieldsAndScroll(fields, { force: true }, (err, values) => {
+        formalizedFormValue(values);
         if (beforeSubmit && beforeSubmit(values) === false) return;
         if (!dataKey) dataKey = 'f';
         onSubmit(err, {
@@ -220,6 +249,7 @@ export function createSubmitHander (form, onSubmit, activeFields, dataKey, befor
   return (e) => {
     e.preventDefault();
     form.validateFieldsAndScroll((err, values) => {
+      formalizedFormValue(values);
       if (beforeSubmit && beforeSubmit(values) === false) return;
       if (!dataKey) dataKey = 'f'
       onSubmit(err, {

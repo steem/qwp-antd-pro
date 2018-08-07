@@ -10,8 +10,14 @@ const {
   P,
 } = require('./common');
 
-function createOps (mockTmpl, path = '/', L = {}, tables = {}, formRules = {}) {
-  mockTmpl.id = '@id';
+function createOps (mockTmpl, path = '/', L = {}, tables = {}, formRules = {}, filters = {}) {
+  let dataKey = 'id';
+  
+  if (mockTmpl._key) {
+    dataKey = mockTmpl._key;
+    delete mockTmpl._key;
+  }
+  if (!mockTmpl[dataKey]) mockTmpl[dataKey]   = '@id';
   let mockData = Mock.mock({'data|1000-3000': [mockTmpl]}).data;
 
   return {
@@ -28,8 +34,8 @@ function createOps (mockTmpl, path = '/', L = {}, tables = {}, formRules = {}) {
     // for getting the created mock data
     _data: mockData,
     get(req, res) {
-      const id = P(req, 'id')
-      const data = queryArray(mockData, id, 'id')
+      const id = P(req, dataKey)
+      const data = queryArray(mockData, id, dataKey)
       if (data) {
         res.status(200).json(data)
       } else {
@@ -53,20 +59,20 @@ function createOps (mockTmpl, path = '/', L = {}, tables = {}, formRules = {}) {
       let ids = P(req, 'f')
       if (ids) {
         if (_.isString(ids)) ids = ids.split(',');
-        ids.filter(e => e.id !== 1);
-        mockData = mockData.filter((item) => !ids.some(e => e === item.id))
+        ids.filter(e => e[dataKey] !== 1);
+        mockData = mockData.filter((item) => !ids.some(e => e === item[dataKey]))
       }
       res.status(200).json({success: true});
     },
     edit(req, res) {
-      const id = P(req, 'id')
+      const id = P(req, dataKey)
       const editItem = P(req, 'f')
       let isExist = false
 
       if (editItem) {
         if (editItem.account) delete editItem.account;
         mockData = mockData.map((item) => {
-          if (item.id === id) {
+          if (item[dataKey] === id) {
             isExist = true
             return Object.assign({}, item, editItem)
           }
@@ -82,29 +88,24 @@ function createOps (mockTmpl, path = '/', L = {}, tables = {}, formRules = {}) {
     list(req, res) {
       const pageSize = P(req, 'pageSize', 10);
       let page = P(req, 'page') || P(req, 'currentPage');
-      const other = P(req, 's');
+      const search = P(req, 's');
       const sortField = P(req, 'sortField') || P(req, 'sorter');
       const sortOrder = P(req, 'sortOrder') || P(req, 'order');
       let newData = mockData;
 
       if (!page) page = 1;
-      for (const key in other) {
-        if ({}.hasOwnProperty.call(other, key)) {
+      for (const key in search) {
+        let dst = search[key];
+
+        if (_.isString(dst)) dst = decodeURI(dst.trim());
+        if (dst.length === 0) continue;
+        if ({}.hasOwnProperty.call(search, key)) {
           newData = newData.filter((item) => {
             if ({}.hasOwnProperty.call(item, key)) {
-              if (key === 'address') {
-                return other[key].every(iitem => item[key].indexOf(iitem) > -1)
-              } else if (key === 'create_time') {
-                const start = new Date(other[key][0]).getTime()
-                const end = new Date(other[key][1]).getTime()
-                const now = new Date(item[key]).getTime()
+              const src = item[key];
 
-                if (start && end) {
-                  return now >= start && now <= end
-                }
-                return true
-              }
-              return String(item[key]).trim().indexOf(decodeURI(other[key]).trim()) > -1
+              if (filters[key]) return filters[key](src, dst);
+              return String(src).indexOf(dst) > -1;
             }
             return true
           })
