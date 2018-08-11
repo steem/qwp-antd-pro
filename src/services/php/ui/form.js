@@ -8,9 +8,9 @@ qwp.form = {
     init: function() {
         qwp.form._createValidators();
         qwp.form.fillAllForms();
-        if (qwp.page && qwp.page.validator) {
-            for (var f in qwp.page.validator) {
-                qwp.form.setFormValidation(f, qwp.page.validator[f]);
+        if (qwp.page && qwp.page.formRules) {
+            for (var f in qwp.page.formRules) {
+                qwp.form.setFormValidation(f, qwp.page.formRules[f]);
             }
         }
     },
@@ -74,22 +74,22 @@ qwp.form = {
 
     },
     resetDialogSubmit: function(formSelector, fnAction) {
-        if (!qwp.page || !qwp.page.validator || !qwp.page.validator[formSelector]) return;
-        var v = qwp.page.validator[formSelector];
+        if (!qwp.page || !qwp.page.formRules || !qwp.page.formRules[formSelector]) return;
+        var v = qwp.page.formRules[formSelector];
         if (!v.noSubmit) qwp.form._attachActionHandler(formSelector, v);
         qwp.form._attachConfirm(formSelector, v, fnAction);
     },
     setFormValidation: function(formSelector, v) {
         if (!qwp.page) qwp.page = {};
-        if (!qwp.page.validator) {
-            qwp.page.validator = {};
-            qwp.page.validator[formSelector] = v;
+        if (!qwp.page.formRules) {
+            qwp.page.formRules = {};
+            qwp.page.formRules[formSelector] = v;
         }
         var rules = {}, messages = {};
         for (var r in v.rules) {
             var item = {}, fieldName = 'f[' + r + ']', added = false;
             for (var k in v.rules[r]) {
-                if (k == '_avoidSqlInj') continue;
+                if (k == '_charsql') continue;
                 var rv = v.rules[r][k];
                 if (k == '_msg') {
                     messages[fieldName] = rv;
@@ -263,8 +263,8 @@ qwp.form = {
     },
     _createValidators: function() {
         var $ = jQuery;
-        if (!qwp.page || !qwp.page.inputRules) return;
-        var rules = qwp.page.inputRules;
+        if (!qwp.page || !qwp.page.validators) return;
+        var rules = qwp.page.validators;
         for (var n in rules) {
             qwp.form._createOneValidator(n, rules[n]);
         }

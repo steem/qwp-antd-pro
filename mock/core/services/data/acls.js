@@ -30,6 +30,7 @@ export default {
 '/sample/list/search/projects': {name: 'projects', page: false},
 '/sample/profile/advanced': {name: 'advanced', page: false},
 '/sample/profile/basic': {name: 'basic', page: false},
+'/sample/profile/books': {name: 'books', page: false},
 '/sample/result/fail': {name: 'fail', page: false},
 '/sample/result/success': {name: 'success', page: false},
 '/system/settings/basic': {name: 'basic', page: false},

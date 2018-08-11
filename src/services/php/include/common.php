@@ -1203,42 +1203,48 @@ function is_one_key_empty(&$arr, $keys)
     }
     return false;
 }
-function get_input_rules($k = null) {
-    $rules = array(
-        'digits' => "^\\d+$",
-        'letters' => "^([a-z]|[A-Z])+$",
-        'alphanumeric' => "^[\\w|-]+$",
-        'alphanumeric_ex' => "^[\\w|-|\\.]+$",
-        // Copyright (c) 2010-2013 Diego Perini, MIT licensed
-        // https://gist.github.com/dperini/729294
-        // see also https://mathiasbynens.be/demo/url-regex
-        // modified to allow protocol-relative URLs
-        'url' => array('^(https?|ftp):\/\/[^\s\/\$.?#].[^\s]*$', 'i'),
-        'password' => array(array("^(\\w|\\d|@|!)+$", "\\d", "[a-z]", "[A-Z]"), array('', '', 'i', 'i')),
-        // From https://html.spec.whatwg.org/multipage/forms.html#valid-e-mail-address
-        // Retrieved 2014-01-14
-        // If you have a problem with this implementation, report a bug against the above spec
-        // Or use custom methods to implement your own email validation
-        'email' => "^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$",
-        'number' => "^(?:-?\\d+|-?\\d{1,3}(?:,\\d{3})+)?(?:\\.\\d+)?$",
-        'ipv4' => "^(25[0-5]|2[0-4]\\d|[01]?\\d\\d?)\\.(25[0-5]|2[0-4]\\d|[01]?\\d\\d?)\\.(25[0-5]|2[0-4]\\d|[01]?\\d\\d?)\\.(25[0-5]|2[0-4]\\d|[01]?\\d\\d?)$",
-        'ipv6' => "^(?:-?\\d+|-?\\d{1,3}(?:,\\d{3})+)?(?:\\.\\d+)?$",
-        'datehour' => "^\\d\\d\\d\\d-\\d\\d-\\d\\d \\d\\d:\\d\\d$",
-        'datetime' => "^\\d\\d\\d\\d-\\d\\d-\\d\\d \\d\\d:\\d\\d:\\d\\d$",
-        'date' => "^\\d\\d\\d\\d-\\d\\d-\\d\\d$",
-        'joined_digits' => "^\\d+[\\d|,]*$",
-        'base64' => '^[A-Za-z0-9\\+\\/=]+$',
-        'hex' => '^[A-E0-9]+$',
-    );
-    return $k ? (isset($rules[$k]) ? $rules[$k] : false): $rules;
-}
-function is_valid_input($v, $rule_name, &$rules = null) {
-    if (!$rules) {
-        $statement = get_input_rules($rule_name);
-    } else {
-        $statement = isset($rules[$rule_name]) ? $rules[$rule_name] : false;
+function get_validators(&$rule, $name = null) {
+    static $rules;
+    
+    if (!isset($rules)) {
+        $rules = array(
+            'digits' => "^\\d+$",
+            'letters' => "^([a-z]|[A-Z])+$",
+            'alphanumeric' => "^[\\w|-]+$",
+            'alphanumeric_ex' => "^[\\w|-|\\.]+$",
+            // Copyright (c) 2010-2013 Diego Perini, MIT licensed
+            // https://gist.github.com/dperini/729294
+            // see also https://mathiasbynens.be/demo/url-regex
+            // modified to allow protocol-relative URLs
+            'url' => array('^(https?|ftp):\/\/[^\s\/\$.?#].[^\s]*$', 'i'),
+            'password' => array(array("^(\\w|\\d|@|!)+$", "\\d", "[a-z]", "[A-Z]"), array('', '', 'i', 'i')),
+            // From https://html.spec.whatwg.org/multipage/forms.html#valid-e-mail-address
+            // Retrieved 2014-01-14
+            // If you have a problem with this implementation, report a bug against the above spec
+            // Or use custom methods to implement your own email validation
+            'email' => "^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$",
+            'number' => "^(?:-?\\d+|-?\\d{1,3}(?:,\\d{3})+)?(?:\\.\\d+)?$",
+            'ipv4' => "^(25[0-5]|2[0-4]\\d|[01]?\\d\\d?)\\.(25[0-5]|2[0-4]\\d|[01]?\\d\\d?)\\.(25[0-5]|2[0-4]\\d|[01]?\\d\\d?)\\.(25[0-5]|2[0-4]\\d|[01]?\\d\\d?)$",
+            'ipv6' => "^(?:-?\\d+|-?\\d{1,3}(?:,\\d{3})+)?(?:\\.\\d+)?$",
+            'datehour' => "^\\d\\d\\d\\d-\\d\\d-\\d\\d \\d\\d:\\d\\d$",
+            'datetime' => "^\\d\\d\\d\\d-\\d\\d-\\d\\d \\d\\d:\\d\\d:\\d\\d$",
+            'date' => "^\\d\\d\\d\\d-\\d\\d-\\d\\d$",
+            'joined_digits' => "^\\d+[\\d|,]*$",
+            'base64' => '^[A-Za-z0-9\\+\\/=]+$',
+            'hex' => '^[A-E0-9]+$',
+        );
     }
-    if (!$statement) {
+    if ($name === null) {
+        $rule = &$rules;
+    } else if (isset($rules[$name])) {
+        $rule = &$rules[$name];
+    } else {
+        $rule = null;
+    }
+}
+function is_valid_input($v, $rule_name) {
+    get_validators($statement, $rule_name);
+    if ($statement === null) {
         return -1;
     }
     if (is_string($statement)) {
@@ -1257,91 +1263,91 @@ function is_valid_input($v, $rule_name, &$rules = null) {
 function is_datetime($v) {
     static $statement;
     if (!isset($statement)) {
-        $statement = get_input_rules('datetime');
+        get_validators($statement, 'datetime');
     }
     return preg_match("/" . $statement . "/", $v);
 }
 function is_datehour($v) {
     static $statement;
     if (!isset($statement)) {
-        $statement = get_input_rules('datehour');
+        get_validators($statement, 'datehour');
     }
     return preg_match("/" . $statement . "/", $v);
 }
 function is_date($v) {
     static $statement;
     if (!isset($statement)) {
-        $statement = get_input_rules('date');
+        get_validators($statement, 'date');
     }
     return preg_match("/" . $statement . "/", $v);
 }
 function is_digits($v) {
     static $statement;
     if (!isset($statement)) {
-        $statement = get_input_rules('digits');
+        get_validators($statement, 'digits');
     }
     return preg_match("/" . $statement . "/", $v);
 }
 function is_joined_digits($v) {
     static $statement;
     if (!isset($statement)) {
-        $statement = get_input_rules('joined_digits');
+        get_validators($statement, 'joined_digits');
     }
     return preg_match("/" . $statement . "/", $v);
 }
 function is_letters($v) {
     static $statement;
     if (!isset($statement)) {
-        $statement = get_input_rules('letters');
+        get_validators($statement, 'letters');
     }
     return preg_match("/" . $statement . "/", $v);
 }
 function is_alphanumeric($v) {
     static $statement;
     if (!isset($statement)) {
-        $statement = get_input_rules('alphanumeric');
+        get_validators($statement, 'alphanumeric');
     }
     return preg_match("/" . $statement . "/", $v);
 }
 function is_alphanumeric_ex($v) {
     static $statement;
     if (!isset($statement)) {
-        $statement = get_input_rules('alphanumeric_ex');
+        get_validators($statement, 'alphanumeric_ex');
     }
     return preg_match("/" . $statement . "/", $v);
 }
 function is_url($v) {
     static $statement;
     if (!isset($statement)) {
-        $statement = get_input_rules('url');
+        get_validators($statement, 'url');
     }
-    return preg_match("/" . $statement[0] . "/" . $statement[1], $v);
+    return preg_match($statement, "/" . $statement[0] . "/" . $statement[1], $v);
 }
 function is_email($v) {
     static $statement;
     if (!isset($statement)) {
-        $statement = get_input_rules('email');
+        get_validators($statement, 'email');
     }
     return preg_match("/" . $statement . "/", $v);
 }
 function is_number($v) {
     static $statement;
     if (!isset($statement)) {
-        $statement = get_input_rules('number');
+        get_validators($statement, 'number');
     }
     return preg_match("/" . $statement . "/", $v);
 }
 function is_ipv4($v) {
     static $statement;
     if (!isset($statement)) {
-        $statement = get_input_rules('ipv4');
+        get_validators($statement, 'ipv4');
     }
     return preg_match("/" . $statement . "/", $v);
 }
 function is_ipv6($v) {
     static $statement;
     if (!isset($statement)) {
-        $statement = get_input_rules('ipv6');
+        get_validators($statement, 'ipv6');
     }
     return preg_match("/" . $statement . "/", $v);
 }

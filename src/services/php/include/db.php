@@ -239,12 +239,14 @@ function qwp_db_set_search_condition_internal(&$field_values, &$query, &$allow_e
                     $obj->where($fn_con['where']);
                     continue;
                 }
-                if ($fn_con == 'null') {
+                if ($fn_con === 'null') {
                     $obj->isNull($field);
-                } else if ($fn_con == 'not null') {
+                } else if ($fn_con === 'not null') {
                     $obj->isNotNull($field);
+                } else if (is_string($field_con)) {
+                    $obj->condition($field, $value, $field_con);
                 } else {
-                    $obj->condition($field, $value, $fn_con);
+                    $query->condition($field, $value);
                 }
             }
         }

@@ -77,7 +77,9 @@ export default {
           selectedRows: [],
         },
       });
-      yield call(fetchUsers, call, put, _.payload || p);
+      const params = _.payload || p;
+      if (!params.pageSize) params.pageSize = config.tablePagination.pageSize;
+      yield call(fetchUsers, call, put, params);
     },
 
     *remove ({ payload }, { select, call, put }) {

@@ -426,8 +426,8 @@ $h = {};
             }
         },
         isValidInput: function(v, ruleName) {
-            if (!qwp.page.inputRules || !qwp.page.inputRules[ruleName]) return false;
-            var re, r = qwp.page.inputRules[ruleName];
+            if (!qwp.page.validators || !qwp.page.validators[ruleName]) return false;
+            var re, r = qwp.page.validators[ruleName];
             if (qwp.isString(r)) {
                 re = new RegExp(r);
                 return re.test(v);

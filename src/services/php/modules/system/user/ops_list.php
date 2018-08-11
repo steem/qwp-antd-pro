@@ -9,6 +9,9 @@ function convert_search_data(&$s) {
         $s['u.name'] = $s['name'];
         unset($s['name']);
     }
+    if (isset($s['create_time'])) {
+        $s['create_time'] = datetime_to_int($s['create_time']);
+    }
 }
 function convert_user(&$r) {
     $r['create_time'] = get_datetime_string($r['create_time']);
@@ -38,6 +41,7 @@ function list_users(&$msg, &$data) {
                     'u.name' => 'like',
                     'avatar' => 'set_avatar_condition',
                     'gender' => array('s' => array('<>', 'x')),
+                    'create_time' => '>=',
                 ),
                 'condition' => array(
                     'op' => 'or',

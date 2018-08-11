@@ -9,11 +9,11 @@ import { createSubmitHandler, getFieldDecorator } from 'utils/form';
 const FormItem = Form.Item;
 
 @Form.create()
-export default class UserDialog extends PureComponent {
+export default class BooksDialog extends PureComponent {
 
   render() {
     const { modalVisible, form, settings, loading, values, onOk, handleModalVisible, isEdit } = this.props;
-    const formName = 'user';
+    const formName = 'books';
 
     return (
       <AutoSizeDialog 

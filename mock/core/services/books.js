@@ -14,7 +14,7 @@ const {
   createOps,
 } = require('../crud');
 
-const routerPath = '/';
+const routerPath = '/sample/profile/books';
 const L = {};
 
 // all you need is to change the data rule and other page settings
@@ -23,7 +23,7 @@ const myOps = createOps({
   desc: '@string(lower, 6, 12)',
   create_time: '@datetime',
 }, routerPath, L, {
-  user: {
+  books: {
     names: [
       ["name", "Name", "10", true, true],
       ["create_time", "Time", "30", true, true],
@@ -32,7 +32,7 @@ const myOps = createOps({
     ],
   },
 }, {
-  user: {
+  books: {
     id: { required: true, 'digits': true, op: 'edit', ui: false },
     name: { required: true, rangelength: [5, 32], 'op_edit': 2 },
     desc: { rangelength: [2, 128] },

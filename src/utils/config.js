@@ -3,8 +3,8 @@ module.exports = {
   logo: '/logo.png',
   inDebug: true,
   restfulApi: true,
-  mockServicePrefix: '/_mock/?',
-  servicePrefix: './antd/services/?',
+  mockServicePrefix: '/_mock',
+  servicePrefix: './antd/services',
   useMockSerivce: false,
   routeUriPrefix: '/',
   passportRoot: '/passport',
@@ -42,6 +42,7 @@ module.exports = {
   tablePagination: {
     currentPage: 1,
     pageSize: 30,
+    defaultPageSize: 30,
     pageSizeOptions:['10', '30', '50', '100'],
   },
   userMenu: {

@@ -15,21 +15,19 @@ import {
   Alert,
 } from 'antd';
 import StandardTable from 'components/StandardTable';
-import RandomAvatar from 'components/Helper/RandomAvatar';
 import DropOption from 'components/DropOption';
 import { createSubmitHandlerForSearch, getFieldDecorator } from 'utils/form';
 import { showErrorMessage } from 'utils/utils';
 import { l } from 'utils/localization';
 import { createTableColumn, handleTableChange } from 'utils/table';
-import UserDialog from './UserDialog';
-import styles from './users.less';
+import BooksDialog from './BooksDialog';
+import styles from './books.less';
 
 const FormItem = Form.Item;
-const { Option } = Select;
 const searchFormName = 'search';
 
-@connect(({ users, loading }) => ({
-  users,
+@connect(({ books, loading }) => ({
+  books,
   loading,
 }))
 @Form.create()
@@ -44,7 +42,7 @@ export default class TableList extends PureComponent {
   componentDidMount() {
     const { dispatch } = this.props;
     dispatch({
-      type: 'users/fetch',
+      type: 'books/fetch',
       payload: {},
     });
   }
@@ -53,7 +51,7 @@ export default class TableList extends PureComponent {
     const { dispatch } = this.props;
     const { searchValues } = this.state;
 
-    handleTableChange(dispatch, 'users/fetch', searchValues, pagination, filtersArg, sorter);
+    handleTableChange(dispatch, 'books/fetch', searchValues, pagination, filtersArg, sorter);
   };
 
   handleFormReset = () => {
@@ -63,7 +61,7 @@ export default class TableList extends PureComponent {
       searchValues: {},
     });
     dispatch({
-      type: 'users/fetch',
+      type: 'books/fetch',
       payload: {},
     });
   };
@@ -78,42 +76,42 @@ export default class TableList extends PureComponent {
 
   handleMenuClick = (u, e) => {
     if (!u) {
-      if (this.props.users.selectedRows.length !== 1) {
+      if (this.props.books.selectedRows.length !== 1) {
         showErrorMessage(l('请选择一个用户'));
         return;
       }
-      u = this.props.users.selectedRows[0];
+      u = this.props.books.selectedRows[0];
     }
 
     switch (e.key) {
       case 'remove':
-        this.deleteUsers(u.id);
+        this.deleteBooks(u.id);
         break;
       case 'edit':
-        this.editUser(u, true);
+        this.editBooks(u, true);
         break;
       default:
         break;
     }
   };
 
-  deleteUsers = (ids) => {
-    if (!ids && !this.props.users.selectedRows.length) return;
+  deleteBooks = (ids) => {
+    if (!ids && !this.props.books.selectedRows.length) return;
     this.props.dispatch({
-      type: 'users/remove',
+      type: 'books/remove',
       payload: {
         ids,
       },
     });
   };
 
-  editUser = (user, fromClick) => {
-    this.handleModalVisible(true, true, fromClick ? user : null);
+  editBooks = (books, fromClick) => {
+    this.handleModalVisible(true, true, fromClick ? books : null);
   };
 
   handleSelectRows = rows => {
     this.props.dispatch({
-      type: 'users/selectedUsers',
+      type: 'books/selectedBooks',
       payload: {
         r: rows,
       },
@@ -122,7 +120,7 @@ export default class TableList extends PureComponent {
 
   clearSelectedRows = () => {
     this.props.dispatch({
-      type: 'users/selectedUsers',
+      type: 'books/selectedBooks',
       payload: {
         r: [],
       },
@@ -139,29 +137,29 @@ export default class TableList extends PureComponent {
     const { dispatch } = this.props;
 
     dispatch({
-      type: 'users/fetch',
+      type: 'books/fetch',
       payload: fields,
     });
   };
 
-  handleModalVisible = (modalVisible, isEdit, user) => {
+  handleModalVisible = (modalVisible, isEdit, books) => {
     this.setState({
       modalVisible: !!modalVisible,
       isEdit: !!isEdit,
-      user,
+      books,
     });
   };
 
-  handleUserDialog = (err, fields, cb) => {
+  handleBooksDialog = (err, fields, cb) => {
     if (err) {
       showErrorMessage(err);
       return;
     }
     if (this.state.isEdit) {
-      fields.id = this.state.user ? this.state.user.id : this.props.users.selectedRows[0].id;
+      fields.id = this.state.books ? this.state.books.id : this.props.books.selectedRows[0].id;
     }
     this.props.dispatch({
-      type: `users/${this.state.isEdit ? 'edit' : 'create'}`,
+      type: `books/${this.state.isEdit ? 'edit' : 'create'}`,
       payload: fields,
       callback: () => {
         cb();
@@ -171,18 +169,18 @@ export default class TableList extends PureComponent {
   };
 
   renderSimpleForm() {
-    const { form, users: { settings } } = this.props;
+    const { form, books: { settings } } = this.props;
 
     return (
       <Form onSubmit={createSubmitHandlerForSearch(this.props.form, this.handleSearch)} layout="inline">
         <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
           <Col md={8} sm={24}>
             <FormItem label="创建日期">
-              {getFieldDecorator(form, settings, searchFormName, 'create_time' )(<DatePicker style={{ width: '100%' }} placeholder="请输入更新日期" />)}
+              {getFieldDecorator(form, settings, searchFormName, 'create_time' )(<DatePicker style={{ width: '100%' }} placeholder="请输入创建日期" />)}
             </FormItem>
           </Col>
           <Col md={8} sm={24}>
-            <FormItem label="姓名">
+            <FormItem label="名称">
               {getFieldDecorator(form, settings, searchFormName, 'name' )(<Input placeholder="请输入" />)}
             </FormItem>
           </Col>
@@ -205,7 +203,7 @@ export default class TableList extends PureComponent {
   }
 
   renderAdvancedForm() {
-    const { form, users: { settings } } = this.props;
+    const { form, books: { settings } } = this.props;
 
     return (
       <Form onSubmit={createSubmitHandlerForSearch(this.props.form, this.handleSearch)} layout="inline">
@@ -221,30 +219,8 @@ export default class TableList extends PureComponent {
             </FormItem>
           </Col>
           <Col md={8} sm={24}>
-            <FormItem label="电话号码">
-              {getFieldDecorator(form, settings, searchFormName, 'phone')(<Input placeholder="请输入" />)}
-            </FormItem>
-          </Col>
-        </Row>
-        <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
-          <Col md={8} sm={24}>
-            <FormItem label="邮箱">
-              {getFieldDecorator(form, settings, searchFormName, 'email')(<Input placeholder="请输入" />)}
-            </FormItem>
-          </Col>
-          <Col md={8} sm={24}>
-            <FormItem label="地址">
-              {getFieldDecorator(form, settings, searchFormName, 'address')(<Input placeholder="请输入" />)}
-            </FormItem>
-          </Col>
-          <Col md={8} sm={24}>
-            <FormItem label="状态">
-              {getFieldDecorator(form, settings, searchFormName, 'status')(
-                <Select placeholder="请选择" style={{ width: '100%' }}>
-                  <Option value="y">启用</Option>
-                  <Option value="n">禁用</Option>
-                </Select>
-              )}
+            <FormItem label="描述">
+              {getFieldDecorator(form, settings, searchFormName, 'desc')(<Input placeholder="请输入" />)}
             </FormItem>
           </Col>
         </Row>
@@ -270,42 +246,34 @@ export default class TableList extends PureComponent {
   }
 
   render() {
-    const { users, loading } = this.props;
-    const { data, settings } = users;
+    const { books, loading } = this.props;
+    const { data, settings } = books;
 
-    if (!settings.tables.user) {
+    if (!settings.tables.books) {
       return null;
     }
 
     const { modalVisible } = this.state;
 
-    if (!this.columns) {
-      this.columns = createTableColumn(settings.tables.user, {
-        render: {
-          name (text, record, ui) {
-            return (
-              <RandomAvatar text={record.nick_name.substr(0, 1)}>
-                <a title={l('Click to update user information')} onClick={() => ui.editUser(record, true)}>{text}</a>
-              </RandomAvatar>
-            );
-          },
-          detail (text, r) {
-            return (<span>{ r.gender === 'm' ? 'Male' : 'Female' } <br /> { r.nick_name } { r.age }</span>)
-          },
-          operation (text, record, ui) {
-            return (
-              <DropOption 
-                onMenuClick={e => ui.handleMenuClick(record, e)}
-                menuOptions={[{ key: 'edit', name: l('Edit') }, { key: 'remove', name: l('Delete') }]}
-              />
-            )
-          },
+    const columns = createTableColumn(settings.tables.books, {
+      render: {
+        name (text, record, ui) {
+          return (<a title={l('Click to update books information')} onClick={() => ui.editBooks(record, true)}>{text}</a>);
         },
-        className: {
-          avatar: styles.avatar,
+        operation (text, record, ui) {
+          return (
+            <DropOption 
+              onMenuClick={e => ui.handleMenuClick(record, e)}
+              menuOptions={[{ key: 'edit', name: l('Edit') }, { key: 'remove', name: l('Delete') }]}
+            />
+          )
         },
-      }, this);
-    }
+      },
+      className: {
+        avatar: styles.avatar,
+      },
+    }, this);
+
     const menu = (
       <Menu onClick={e => this.handleMenuClick(null, e)} selectedKeys={[]}>
         <Menu.Item key="role">设置角色</Menu.Item>
@@ -315,9 +283,9 @@ export default class TableList extends PureComponent {
 
     const dialogProps = {
       settings,
-      onOk: this.handleUserDialog,
+      onOk: this.handleBooksDialog,
       handleModalVisible: this.handleModalVisible,
-      values: this.state.isEdit ? (this.state.user || this.props.users.selectedRows[0]) : {},
+      values: this.state.isEdit ? (this.state.books || this.props.books.selectedRows[0]) : {},
       isEdit: this.state.isEdit,
     };
 
@@ -329,10 +297,10 @@ export default class TableList extends PureComponent {
             <Button icon="plus" type="primary" onClick={() => this.handleModalVisible(true)}>
               新建
             </Button>
-            {users.selectedRows && users.selectedRows.length > 0 && (
+            {books.selectedRows && books.selectedRows.length > 0 && (
               <span>
-                {users.selectedRows.length === 1 && <Button onClick={this.editUser} loading={loading.effects['users/edit']}>编辑</Button>}
-                <Button onClick={() => this.deleteUsers()} loading={loading.effects['users/remove']}>删除</Button>
+                {books.selectedRows.length === 1 && <Button onClick={this.editBooks} loading={loading.effects['books/edit']}>编辑</Button>}
+                <Button onClick={() => this.deleteBooks()} loading={loading.effects['books/remove']}>删除</Button>
                 <Dropdown overlay={menu}>
                   <Button>
                     更多操作 <Icon type="down" />
@@ -340,12 +308,12 @@ export default class TableList extends PureComponent {
                 </Dropdown>
               </span>
             )}
-            {users.selectedRows && users.selectedRows.length > 0 && (
+            {books.selectedRows && books.selectedRows.length > 0 && (
               <div style={{float: 'right'}}>
                 <Alert
                   message={
                     <Fragment>
-                      已选择 <a style={{ fontWeight: 600 }}>{users.selectedRows.length}</a> 项&nbsp;&nbsp;
+                      已选择 <a style={{ fontWeight: 600 }}>{books.selectedRows.length}</a> 项&nbsp;&nbsp;
                       <a onClick={this.clearSelectedRows} style={{ marginLeft: 24 }}>
                         清空
                       </a>
@@ -357,15 +325,15 @@ export default class TableList extends PureComponent {
             )}
           </div>
           <StandardTable
-            selectedRows={users.selectedRows}
-            loading={loading.effects['users/init'] || loading.effects['users/fetch']}
+            selectedRows={books.selectedRows}
+            loading={loading.effects['books/init'] || loading.effects['books/fetch']}
             data={data}
-            columns={this.columns}
+            columns={columns}
             onSelectRow={this.handleSelectRows}
             onChange={this.handleStandardTableChange}
           />
         </div>
-        {modalVisible && <UserDialog ref={n => {this.dialog = n}} {...dialogProps} modalVisible={modalVisible} loading={loading.effects['users/create'] || loading.effects['users/edit']} />}
+        {modalVisible && <BooksDialog ref={n => {this.dialog = n}} {...dialogProps} modalVisible={modalVisible} loading={loading.effects['books/create'] || loading.effects['books/edit']} />}
       </Card>
     );
   }

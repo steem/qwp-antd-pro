@@ -18,8 +18,8 @@ function qwp_delete_file_in_form(&$f, $field) {
         unlink($f[$field]['path']);
     }
 }
-function qwp_validate_get_error($msg, $val) {
-    if (QWP_SHOW_INVALID_FORM_VALUE) return $msg . '. ' . L('Current value is: ') . '<pre>'  . $val . '</pre>';
+function qwp_validate_get_error(&$msg, &$val, &$name) {
+    if (QWP_SHOW_INVALID_FORM_VALUE) return $msg . '. ' . L('Current value of {0} is: ', $name) . '<pre>'  . $val . '</pre>';
     return $msg;
 }
 function qwp_validate_file_for_file_validator() {
@@ -181,13 +181,67 @@ function qwp_filter_form_values(&$f, &$all_filters) {
         }
     }
 }
+function qwp_validate_form_item(&$f, &$validator, &$field_value, &$validator_value) {
+    if (is_array($field_value)) {
+        return false;
+    }
+    if ($validator == 'datetime') {
+        return datetime_to_int($field_value) ? true : false;
+    } else if ($validator == 'date') {
+        return date_to_int($field_value) ? true : false;
+    } else if ($validator == 'datehour') {
+        return datetime_to_int($field_value . ':00') ? true : false;
+    } else if ($validator == 'datetime_range') {
+        if (!is_array($field_value) || !isset($field_value[0]) || !isset($field_value[1])) {
+            return false;
+        }
+        return datetime_to_int($field_value[0]) && datetime_to_int($field_value[1]) ? true : false;
+    } else if ($validator == 'date_range') {
+        if (!is_array($field_value) || !isset($field_value[0]) || !isset($field_value[1])) {
+            return false;
+        }
+        return date_to_int($field_value[0]) && date_to_int($field_value[1]) ? true : false;
+    } else if ($validator == 'datehour_range') {
+        if (!is_array($field_value) || !isset($field_value[0]) || !isset($field_value[1])) {
+            return false;
+        }
+        return datetime_to_int($field_value[0]. ':00') && datetime_to_int($field_value[1]. ':00') ? true : false;
+    } else if ($validator == 'digits') {
+        return is_digits($field_value);
+    } else if ($validator == 'minlength') {
+        return mb_strlen($field_value, 'utf8') >= $validator_value;
+    } else if ($validator == 'maxlength') {
+        return mb_strlen($field_value, 'utf8') <= $validator_value;
+    } else if ($validator == 'rangelength') {
+        $len = mb_strlen($field_value, 'utf8');
+        return $len >= $validator_value[0] && $len <= $validator_value[1];
+    } else if ($validator == 'min') {
+        return $field_value >= $validator_value;
+    } else if ($validator == 'max') {
+        return $field_value <= $validator_value;
+    } else if ($validator == 'range' || $validator == '[]') {
+        return $field_value >= $validator_value[0] && $field_value <= $validator_value[1];
+    } else if ($validator == 'equalTo' || $validator == '=') {
+        $equal_item = isset($f[$validator_value[1]]) ? $f[$validator_value[1]] : null;
+        return $field_value === $equal_item;
+    } else if ($validator == 'in') {
+        return in_array($field_value, $validator_value);
+    } else if ($validator == '[)') {
+        return $field_value >= $validator_value[0] && $field_value < $validator_value[1];
+    } else if ($validator == '(]') {
+        return $field_value > $validator_value[0] && $field_value <= $validator_value[1];
+    } else if ($validator == '()') {
+        return $field_value > $validator_value[0] && $field_value < $validator_value[1];
+    }
+    return is_valid_input($field_value, $validator);
+}
 function qwp_validate_data(&$f, &$rules, &$filters = null, $just_unset_when_failed = false) {
     global $QWP_FORM_OP_TAG;
 
     $op_tag = $QWP_FORM_OP_TAG ? 'op_' . $QWP_FORM_OP_TAG : '';
     $msg_base = L('Invalid form data');
+    $empty_value = L('empty');
     $valid_fields = array();
-    $predefined_rules = get_input_rules();
     foreach ($rules as $field_name => &$rule) {
         $op = isset($rule['op']) ? $rule['op'] : '';
         if ($op) {
@@ -222,143 +276,59 @@ function qwp_validate_data(&$f, &$rules, &$filters = null, $just_unset_when_fail
                     unset($f[$field_name]);
                     continue;
                 }
-                return $msg . '. ' . L('Current value is empty!');
+                return qwp_validate_get_error($msg, $emtpy, $field_name);
             }
         } else if ($field_value === null || $field_value === '') {
             continue;
         }
-        foreach ($rule as $key => $item) {
-            if (substr($key, 0, 1) == '_') {
-                if ($key == '_avoidSqlInj') $f[$field_name] = mysql_real_escape_string($field_value);
+        $from = null;
+        if (isset($rule['_from'])) {
+            $from = $rule['_from'];
+            unset($rule['_from']);
+        }
+        foreach ($rule as $validator => $validator_value) {
+            if (substr($validator, 0, 1) == '_') {
+                if ($validator == '_sqlchar') {
+                    $f[$field_name] = mysql_real_escape_string($field_value);
+                }
                 continue;
             }
-            if (starts_with($key, 'op_')) continue;
-            if ($key == 'required' || $key == 'optional' || $key === 'file') continue;
-            if ($key == 'date') {
-                if (!date_to_int($field_value)) {
-                    if ($just_unset_when_failed) {
-                        unset($f[$field_name]);
-                        continue;
-                    }
-                    return qwp_validate_get_error($msg, $field_value);
+            if ($validator == 'required' || $validator == 'optional' || $validator === 'file' || starts_with($validator, 'op_')) {
+                continue;
+            }
+            if (is_array($field_value)) {
+                $is_item_valid = true;
+                if ($validator === 'array') {
+                    continue;
                 }
-            } else if ($key == 'datetime') {
-                if (!datetime_to_int($field_value)) {
-                    if ($just_unset_when_failed) {
-                        unset($f[$field_name]);
-                        continue;
+                foreach ($field_value as &$field_value_of_arr) {
+                    if (is_array($field_value_of_arr)) {
+                        if ($from !== null && isset($field_value_of_arr[$from])) {
+                            $chk_v = &$field_value_of_arr[$from];
+                        } else {
+                            $is_item_valid = false;
+                            break;
+                        }
+                    } else {
+                        $chk_v = &$field_value_of_arr;
                     }
-                    return qwp_validate_get_error($msg, $field_value);
+                    if (qwp_validate_form_item($f, $validator, $chk_v, $validator_value) === false) {
+                        $is_item_valid = false;
+                        break;
+                    }    
                 }
-            } else if ($key == 'digits') {
-                if (!is_digits($field_value)) {
-                    if ($just_unset_when_failed) {
-                        unset($f[$field_name]);
-                        continue;
-                    }
-                    return qwp_validate_get_error($msg, $field_value);
-                }
-            } else if ($key == 'minlength') {
-                $len = mb_strlen($field_value, 'utf8');
-                if ($len < $item) {
-                    if ($just_unset_when_failed) {
-                        unset($f[$field_name]);
-                        continue;
-                    }
-                    return qwp_validate_get_error($msg, $field_value);
-                }
-            } else if ($key == 'maxlength') {
-                $len = mb_strlen($field_value, 'utf8');
-                if ($len > $item) {
-                    if ($just_unset_when_failed) {
-                        unset($f[$field_name]);
-                        continue;
-                    }
-                    return qwp_validate_get_error($msg, $field_value);
-                }
-            } else if ($key == 'rangelength') {
-                $len = mb_strlen($field_value, 'utf8');
-                if ($len < $item[0] || $len > $item[1]) {
-                    if ($just_unset_when_failed) {
-                        unset($f[$field_name]);
-                        continue;
-                    }
-                    return qwp_validate_get_error($msg, $field_value);
-                }
-            } else if ($key == 'min') {
-                if ($field_value < $item) {
-                    if ($just_unset_when_failed) {
-                        unset($f[$field_name]);
-                        continue;
-                    }
-                    return qwp_validate_get_error($msg, $field_value);
-                }
-            } else if ($key == 'max') {
-                if ($field_value > $item) {
-                    if ($just_unset_when_failed) {
-                        unset($f[$field_name]);
-                        continue;
-                    }
-                    return qwp_validate_get_error($msg, $field_value);
-                }
-            } else if ($key == 'range' || $key == '[]') {
-                if ($field_value < $item[0] || $field_value > $item[1]) {
-                    if ($just_unset_when_failed) {
-                        unset($f[$field_name]);
-                        continue;
-                    }
-                    return qwp_validate_get_error($msg, $field_value);
-                }
-            } else if ($key == 'equalTo' || $key == '=') {
-                $equal_item = isset($f[$item[1]]) ? $f[$item[1]] : null;
-                if ($field_value != $equal_item) {
-                    if ($just_unset_when_failed) {
-                        unset($f[$field_name]);
-                        continue;
-                    }
-                    return qwp_validate_get_error($msg, $field_value);
-                }
-            } else if ($key == 'in') {
-                if (!in_array($field_value, $item)) {
-                    if ($just_unset_when_failed) {
-                        unset($f[$field_name]);
-                        continue;
-                    }
-                    return qwp_validate_get_error($msg, $field_value);
-                }
-            } else if ($key == '[)') {
-                if ($field_value < $item[0] || $field_value >= $item[1]) {
-                    if ($just_unset_when_failed) {
-                        unset($f[$field_name]);
-                        continue;
-                    }
-                    return qwp_validate_get_error($msg, $field_value);
-                }
-            } else if ($key == '(]') {
-                if ($field_value <= $item[0] || $field_value > $item[1]) {
-                    if ($just_unset_when_failed) {
-                        unset($f[$field_name]);
-                        continue;
-                    }
-                    return qwp_validate_get_error($msg, $field_value);
-                }
-            } else if ($key == '()') {
-                if ($field_value <= $item[0] || $field_value >= $item[1]) {
-                    if ($just_unset_when_failed) {
-                        unset($f[$field_name]);
-                        continue;
-                    }
-                    return qwp_validate_get_error($msg, $field_value);
+                if ($is_item_valid) {
+                    continue;
                 }
             } else {
-                $fn_ret = is_valid_input($field_value, $key, $predefined_rules);
-                if ($fn_ret !== -1 && !$fn_ret) {
-                    if ($just_unset_when_failed) {
-                        unset($f[$field_name]);
-                        continue;
-                    }
-                    return qwp_validate_get_error($msg, $field_value);
+                if ($validator !== 'array' && qwp_validate_form_item($f, $validator, $field_value, $validator_value) !== false) {
+                    continue;
                 }
+            }
+            if ($just_unset_when_failed) {
+                unset($f[$field_name]);
+            } else {
+                return qwp_validate_get_error($msg, $field_value, $field_name);
             }
         }
     }

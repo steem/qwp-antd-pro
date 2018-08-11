@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import moment from 'moment';
 import { l } from './localization';
 
 let validators = {};
@@ -141,14 +142,32 @@ export function isFileValid(settings, formName, name, fileList) {
 }
 
 export function setValidators(v) {
-  validators = v;
+  if (v) validators = v;
 }
 
-function isFileItem(rules) {
-  for (const r of rules) {
-    if (r.validator === fileValidator) return true;
+export function isFieldValid(data, ruleName) {
+  if (!validators[ruleName]) return -1;
+
+  const rule = validators[ruleName];
+
+  if (_.isArray(rule)) {
+    for (let i = 0, cnt = rule[0].length; i < cnt; ++i) {
+      let r;
+      if (rule[1][i]) r = new RegExp(rule[0][i], rule[1][i]);
+      else r = new RegExp(rule[0][i]);
+      if (!r.test(data)) {
+        return validatorDesc[ruleName] || validatorDesc.general;
+      }
+    }
+  } else {
+    const r = new RegExp(rule);
+    
+    if (!r.test(data)) {
+      return validatorDesc[ruleName] || validatorDesc.general;
+    }
   }
-  return false;
+
+  return true;
 }
 
 function changeRuleRequiredFlag(rules, d) {
@@ -183,23 +202,46 @@ function fixRules(rules, op) {
   }
 }
 
+function fillInitialValue(r, itemType, values, name) {
+  if (itemType === 'file' || !values || _.isUndefined(values[name])) {
+    if (itemType === 'datetime') {
+      return;
+    }
+    r.initialValue = '';
+  } else if (itemType === 'datetime') {
+    r.initialValue = moment(values[name], 'YYYY-MM-DD HH:mm:ss');
+  } else if (itemType === 'date') {
+    r.initialValue = moment(values[name], 'YYYY-MM-DD');
+  } else if (itemType === 'datehour') {
+    r.initialValue = moment(values[name], 'YYYY-MM-DD HH:mm');
+  } else {
+    r.initialValue = values[name];
+  }
+}
+
 export function createFieldRules (settings, formName, name, values, op) {
   const dv = { rules: [] };
   let r = dv;
   const form = settings.formRules && settings.formRules[formName] ? settings.formRules[formName] : {};
+  let itemType = false;
 
-  if (form[name]) r = form[name];
-  fixRules(r.rules, op);
-  if (isFileItem(r.rules)) {
-    r.initialValue = '';
-  } else if (values) {
-    r.initialValue = !_.isUndefined(values[name]) ? values[name] : '';
+  if (form[name]) {
+    r = form[name].rule;
+    itemType = form[name].itemType;
   }
+  fixRules(r.rules, op);
+  fillInitialValue(r, itemType, values, name);
+
   return r;
 }
 
 export function getFieldDecorator(form, settings, formName, name, values, op) {
-  return form.getFieldDecorator(name, createFieldRules(settings, formName, name, values, op))
+  const args = [name];
+  const r = createFieldRules(settings, formName, name, values, op);
+
+  if (!_.isUndefined(r.initialValue) || r.rules.length > 0) args.push(r);
+
+  return form.getFieldDecorator(...args);
 }
 
 function isMomentObject(o) {
@@ -210,7 +252,7 @@ function getDateTimeValue(o) {
   return o.format('YYYY-MM-DD HH:mm:ss');
 }
 
-function formalizedFormValue(values) {
+function formalizedFormValues(values) {
   for (const k in values) {
     if (values[k] && values[k].constructor) {
       const name = values[k].constructor.name;
@@ -230,14 +272,14 @@ function formalizedFormValue(values) {
   }
 }
 
-export function createSubmitHander (form, onSubmit, activeFields, dataKey, beforeSubmit) {
+export function createSubmitHandler (form, onSubmit, activeFields, dataKey, beforeSubmit) {
   const resetFields = () => form.resetFields();
   if (activeFields) {
     return (e) => {
       e.preventDefault();
       const fields = _.isFunction(activeFields) ? activeFields() : activeFields;
       form.validateFieldsAndScroll(fields, { force: true }, (err, values) => {
-        formalizedFormValue(values);
+        formalizedFormValues(values);
         if (beforeSubmit && beforeSubmit(values) === false) return;
         if (!dataKey) dataKey = 'f';
         onSubmit(err, {
@@ -249,7 +291,7 @@ export function createSubmitHander (form, onSubmit, activeFields, dataKey, befor
   return (e) => {
     e.preventDefault();
     form.validateFieldsAndScroll((err, values) => {
-      formalizedFormValue(values);
+      formalizedFormValues(values);
       if (beforeSubmit && beforeSubmit(values) === false) return;
       if (!dataKey) dataKey = 'f'
       onSubmit(err, {
@@ -257,6 +299,10 @@ export function createSubmitHander (form, onSubmit, activeFields, dataKey, befor
       }, resetFields)
     });
   };
+}
+
+export function createSubmitHandlerForSearch(form, onSubmit) {
+  return createSubmitHandler(form, onSubmit, false, 's');
 }
 
 function initErrorMessages() {
@@ -270,78 +316,96 @@ function initErrorMessages() {
 
 export function importFormRules (settings) {
   if (!settings || !settings.formRules) return;
+
+  const ignoredRules = ['_msg', '_sqlchar', '_from', 'array', 'requried', 'ui'];
+
   initErrorMessages();
   for (const p in settings.formRules) {
     const f = settings.formRules[p]
     for (const name in f) {
-      const fr = f[name];
+      const formRule = f[name];
 
-      if (!_.isUndefined(fr.ui)) {
-        if (fr.ui === false) {
+      if (!_.isUndefined(formRule.ui)) {
+        if (formRule.ui === false) {
           continue;
         }
-        delete fr.ui;
       }
 
-      const nr = { rules: [] };
+      const newRules = { rules: [] };
+      let itemType = false;
+      let objectType = false;
+      let firstRule = true;
 
-      if (!fr.required) nr.rules.push({required: false, default: false});
-      for (const item in fr) {
-        const ov = fr[item];
-        const r = {};
+      newRules.rules.push({required: !!formRule.required, default: !!formRule.required});
+      for (const ruleName in formRule) {
+        const ruleValue = formRule[ruleName];
+        let r;
+        let isNewCreated;
 
-        if (item === '_msg') continue;
-        if (item === 'file') {
+        if (firstRule) {
+          r = newRules.rules[0];
+          isNewCreated = false;
+          firstRule = false;
+        } else {
+          r = {};
+          isNewCreated = true;
+        }
+        if (ignoredRules.indexOf(ruleName) !== -1) continue;
+        if (ruleName === 'file') {
+          r.itemType = 'file';
           r.validator = fileValidator;
           r.message = validatorDesc.file;
-          if (ov.length > 0) {
-            const rsArr = ov[0].split(',');
+          if (ruleValue.length > 0) {
+            const rsArr = ruleValue[0].split(',');
             if (rsArr.length) {
               r.rs = {};
               for (const rsi of rsArr) {
                 r.rs[rsi] = true;
               }
             }
-            if (ov[1]) {
-              r.size = ov[1].split(',');
+            if (ruleValue[1]) {
+              r.size = ruleValue[1].split(',');
               if (r.size.length === 1) {
                 r.size = [1, r.size[0]];
               }
             }
           }
-        } else if (item === 'rangelength') {
-          [r.min, r.max] = ov;
+        } else if (ruleName === 'rangelength') {
+          [r.min, r.max] = ruleValue;
           r.message = l('The length of this field must between {0} and {1}.', r.min, r.max);
-        } else if (item === 'minlength') {
-          r.min = ov;
+        } else if (ruleName === 'minlength') {
+          r.min = ruleValue;
           r.message = l('The minimium length of this field must be {0}.', r.min);
-        } else if (item === 'maxlength') {
-          r.max = ov;
+        } else if (ruleName === 'maxlength') {
+          r.max = ruleValue;
           r.message = l('The maximum length of this field must be {0}.', r.max);
-        } else if (rangeErrorDesc[item]) {
+        } else if (rangeErrorDesc[ruleName]) {
           r.validator = compareValidator;
-          r.message = rangeErrorDesc[item](...ov);
-          r.rs = [item, ov];
-        } else if (validators[item]) {
-          if (_.isArray(validators[item])) {
-            r.validator = createRegExValidatorByArray(nr.rules);
-            r.rs = validators[item]
+          r.message = rangeErrorDesc[ruleName](...ruleValue);
+          r.rs = [ruleName, ruleValue];
+        } else if (validators[ruleName]) {
+          itemType = ruleName;
+          if (itemType.startsWith('date')) {
+            objectType = itemType.endsWith('range') ? 'array' : 'object';
+          } else if (_.isArray(validators[ruleName])) {
+            r.validator = createRegExValidatorByArray(newRules.rules);
+            r.rs = validators[ruleName];
           } else {
-            r.validator = createRegExValidator(validators[item], nr.rules);
+            r.validator = createRegExValidator(validators[ruleName], newRules.rules);
           }
-          if (validatorDesc[item]) r.message = validatorDesc[item];
+          if (validatorDesc[ruleName]) r.message = validatorDesc[ruleName];
         } else {
-          r[item] = ov;
-          if (item === 'required') r.default = ov;
+          r[ruleName] = ruleValue;
         }
-        nr.rules.push(r)
+        if (isNewCreated) newRules.rules.push(r);
       }
-      if (nr.rules.length > 0) {
-        const msg =  fr._msg ? l(fr._msg) : validatorDesc.general;
-        nr.rules.forEach((r) => {
+      if (newRules.rules.length > 0) {
+        const msg =  formRule._msg ? l(formRule._msg) : validatorDesc.general;
+        newRules.rules.forEach((r) => {
           if (!r.message) r.message = msg;
-        })
-        f[name] = nr
+          if (objectType) r.type = objectType;
+        });
+        f[name] = {rule: newRules, itemType};
       } else {
         delete f[name]
       }

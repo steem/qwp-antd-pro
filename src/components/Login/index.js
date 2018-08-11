@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { Form, Tabs } from 'antd';
 import { connect } from 'dva';
 import classNames from 'classnames';
-import { createSubmitHander } from 'utils/form';
+import { createSubmitHandler } from 'utils/form';
 import LoginItem from './LoginItem';
 import LoginTab from './LoginTab';
 import LoginSubmit from './LoginSubmit';
@@ -41,16 +41,18 @@ class Login extends Component {
   };
 
   getChildContext() {
+    const { tabs } = this.state;
+
     return {
       tabUtil: {
         addTab: id => {
           this.setState({
-            tabs: [...this.state.tabs, id],
+            tabs: [...tabs, id],
           });
         },
         removeTab: id => {
           this.setState({
-            tabs: this.state.tabs.filter(currentId => currentId !== id),
+            tabs: tabs.filter(currentId => currentId !== id),
           });
         },
       },
@@ -97,7 +99,7 @@ class Login extends Component {
     });
     return (
       <div className={classNames(className, styles.login)}>
-        <Form onSubmit={createSubmitHander(this.props.form, this.props.onSubmit, this.activeFileds.bind(this))}>
+        <Form onSubmit={createSubmitHandler(this.props.form, this.props.onSubmit, this.activeFileds.bind(this))}>
           {tabs.length ? (
             <div>
               <Tabs

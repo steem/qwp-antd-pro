@@ -62,15 +62,18 @@ const myOps = createOps({
     email: { email: true, rangelength: [8, 128] },
     address: { rangelength: [6, 128] },
   },
+  search: {
+    create_time: { datetime: true },
+  },
 }, {
   create_time: (item, filter) => {
-    const start = new Date(filter).getTime();
-    const now = new Date(item).getTime();
+    const filterTime = new Date(filter).getTime();
+    const itemTime = new Date(item).getTime();
 
-    if (start) {
-      return now >= start;
+    if (filterTime) {
+      return itemTime >= filterTime;
     }
-    return true
+    return true;
   },
 });
 

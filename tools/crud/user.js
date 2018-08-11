@@ -16,7 +16,7 @@ import {
 } from 'antd';
 import StandardTable from 'components/StandardTable';
 import DropOption from 'components/DropOption';
-import { createSubmitHander, createFieldRules } from 'utils/form';
+import { createSubmitHandlerForSearch, getFieldDecorator } from 'utils/form';
 import { showErrorMessage } from 'utils/utils';
 import { l } from 'utils/localization';
 import { createTableColumn, handleTableChange } from 'utils/table';
@@ -24,12 +24,7 @@ import UserDialog from './UserDialog';
 import styles from './user.less';
 
 const FormItem = Form.Item;
-const { Option } = Select;
-
-function getRoleName(r) {
-  if (r.role === '1') return 'Admin';
-  return '维护人员';
-}
+const searchFormName = 'search';
 
 @connect(({ user, loading }) => ({
   user,
@@ -161,7 +156,7 @@ export default class TableList extends PureComponent {
       return;
     }
     if (this.state.isEdit) {
-      fields.id = this.props.user.selectedRows[0].id;
+      fields.id = this.state.user ? this.state.user.id : this.props.user.selectedRows[0].id;
     }
     this.props.dispatch({
       type: `user/${this.state.isEdit ? 'edit' : 'create'}`,
@@ -174,22 +169,19 @@ export default class TableList extends PureComponent {
   };
 
   renderSimpleForm() {
-    const { getFieldDecorator } = this.props.form;
-    const formName = 'search';
+    const { form, user: { settings } } = this.props;
 
     return (
-      <Form onSubmit={createSubmitHander(this.props.form, this.handleSearch, false, 's')} layout="inline">
+      <Form onSubmit={createSubmitHandlerForSearch(this.props.form, this.handleSearch)} layout="inline">
         <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
           <Col md={8} sm={24}>
             <FormItem label="创建日期">
-              {getFieldDecorator('create_time', createFieldRules(this.props.user.settings, formName, 'create_time'))(
-                <DatePicker style={{ width: '100%' }} placeholder="请输入更新日期" />
-              )}
+              {getFieldDecorator(form, settings, searchFormName, 'create_time' )(<DatePicker style={{ width: '100%' }} placeholder="请输入创建日期" />)}
             </FormItem>
           </Col>
           <Col md={8} sm={24}>
-            <FormItem label="姓名">
-              {getFieldDecorator('name', createFieldRules(this.props.user.settings, formName, 'name'))(<Input placeholder="请输入" />)}
+            <FormItem label="名称">
+              {getFieldDecorator(form, settings, searchFormName, 'name' )(<Input placeholder="请输入" />)}
             </FormItem>
           </Col>
           <Col md={8} sm={24}>
@@ -211,49 +203,24 @@ export default class TableList extends PureComponent {
   }
 
   renderAdvancedForm() {
-    const { getFieldDecorator } = this.props.form;
-    const formName = 'search';
+    const { form, user: { settings } } = this.props;
 
     return (
-      <Form onSubmit={createSubmitHander(this.props.form, this.handleSearch, false, 's')} layout="inline">
+      <Form onSubmit={createSubmitHandlerForSearch(this.props.form, this.handleSearch)} layout="inline">
         <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
           <Col md={8} sm={24}>
             <FormItem label="创建日期">
-              {getFieldDecorator('create_time', createFieldRules(this.props.user.settings, formName, 'create_time'))(
-                <DatePicker style={{ width: '100%' }} placeholder="请输入更新日期" />
-              )}
+              {getFieldDecorator(form, settings, searchFormName, 'create_time')(<DatePicker style={{ width: '100%' }} placeholder="请输入创建日期" />)}
             </FormItem>
           </Col>
           <Col md={8} sm={24}>
             <FormItem label="姓名">
-              {getFieldDecorator('name', createFieldRules(this.props.user.settings, formName, 'name'))(<Input placeholder="请输入" />)}
+              {getFieldDecorator(form, settings, searchFormName, 'name')(<Input placeholder="请输入" />)}
             </FormItem>
           </Col>
           <Col md={8} sm={24}>
-            <FormItem label="电话号码">
-              {getFieldDecorator('phone', createFieldRules(this.props.user.settings, formName, 'phone'))(<Input placeholder="请输入" />)}
-            </FormItem>
-          </Col>
-        </Row>
-        <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
-          <Col md={8} sm={24}>
-            <FormItem label="邮箱">
-              {getFieldDecorator('email', createFieldRules(this.props.user.settings, formName, 'email'))(<Input placeholder="请输入" />)}
-            </FormItem>
-          </Col>
-          <Col md={8} sm={24}>
-            <FormItem label="地址">
-              {getFieldDecorator('address', createFieldRules(this.props.user.settings, formName, 'address'))(<Input placeholder="请输入" />)}
-            </FormItem>
-          </Col>
-          <Col md={8} sm={24}>
-            <FormItem label="状态">
-              {getFieldDecorator('status')(
-                <Select placeholder="请选择" style={{ width: '100%' }}>
-                  <Option value="y">启用</Option>
-                  <Option value="n">禁用</Option>
-                </Select>
-              )}
+            <FormItem label="描述">
+              {getFieldDecorator(form, settings, searchFormName, 'desc')(<Input placeholder="请输入" />)}
             </FormItem>
           </Col>
         </Row>
@@ -292,9 +259,6 @@ export default class TableList extends PureComponent {
       render: {
         name (text, record, ui) {
           return (<a title={l('Click to update user information')} onClick={() => ui.editUser(record, true)}>{text}</a>);
-        },
-        role (text, r) {
-          return (<span>{getRoleName(r.role)}</span>);
         },
         operation (text, record, ui) {
           return (

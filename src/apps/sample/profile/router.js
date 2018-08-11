@@ -1,5 +1,7 @@
 var router = {
   icon: 'profile',
   models: 'profile',
-  items: ['advanced', 'basic', ],
+  items: ['advanced', 'basic', 
+    { path: 'books', selfModels: 'books' }
+  ],
 };

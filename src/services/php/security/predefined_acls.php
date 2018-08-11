@@ -32,6 +32,7 @@ function get_predefined_acls(&$modules) {
         '/sample/list/search/projects' => array('name' => 'projects', 'icon' => 'undefined', 'page' => false, 'public' => false),
         '/sample/profile/advanced' => array('name' => 'advanced', 'icon' => 'undefined', 'page' => false, 'public' => false),
         '/sample/profile/basic' => array('name' => 'basic', 'icon' => 'undefined', 'page' => false, 'public' => false),
+        '/sample/profile/books' => array('name' => 'books', 'icon' => 'undefined', 'page' => false, 'public' => false),
         '/sample/result/fail' => array('name' => 'fail', 'icon' => 'undefined', 'page' => false, 'public' => false),
         '/sample/result/success' => array('name' => 'success', 'icon' => 'undefined', 'page' => false, 'public' => false),
         '/system/settings/basic' => array('name' => 'basic', 'icon' => 'undefined', 'page' => false, 'public' => false),

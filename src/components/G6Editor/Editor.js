@@ -1,10 +1,13 @@
 import React from 'react';
 import G6Editor from '@antv/g6-editor';
+import G6 from '@antv/g6';
 import { sizer } from 'utils/layout';
 
 function getEditorHeight() {
   return window.innerHeight - 42 - 69;
 }
+
+G6.track(false);
 
 class Editor extends React.Component {
   constructor(props) {

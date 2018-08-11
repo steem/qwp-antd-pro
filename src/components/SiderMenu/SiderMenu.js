@@ -15,29 +15,29 @@ const { SubMenu } = Menu;
 //   icon: 'http://demo.com/icon.png',
 //   icon: <Icon type="setting" />,
 const getIcon = icon => {
-  if (typeof icon === 'string' && icon.indexOf('http') === 0) {
-    return <img src={icon} alt="icon" className={`${styles.icon} sider-menu-item-img`} />;
-  }
   if (typeof icon === 'string') {
+    if (icon.indexOf('http') === 0) {
+      return <img src={icon} alt="icon" className={`${styles.icon} sider-menu-item-img`} />;
+    }
     return <Icon type={icon} />;
   }
+
   return icon;
 };
 
 /**
  * Recursively flatten the data
- * [{path:string},{path:string}] => {path,path2}
+ * [{path:string},{path:string}] => [path,path2]
  * @param  menu
  */
 export const getFlatMenuKeys = menu =>
-  menu
-    .reduce((keys, item) => {
-      keys.push(item.path);
-      if (item.children) {
-        return keys.concat(getFlatMenuKeys(item.children));
-      }
-      return keys;
-    }, []);
+  menu.reduce((keys, item) => {
+    keys.push(item.path);
+    if (item.children) {
+      return keys.concat(getFlatMenuKeys(item.children));
+    }
+    return keys;
+  }, []);
 
 /**
  * Find all matched menu keys based on paths
@@ -45,11 +45,11 @@ export const getFlatMenuKeys = menu =>
  * @param  paths: [/abc, /abc/11, /abc/11/info]
  */
 export const getMenuMatchKeys = (flatMenuKeys, paths) =>
-  paths
-    .reduce((matchKeys, path) => (
-      matchKeys.concat(
-        flatMenuKeys.filter(item => pathToRegexp(item).test(path))
-    )), []);
+  paths.reduce(
+    (matchKeys, path) =>
+      matchKeys.concat(flatMenuKeys.filter(item => pathToRegexp(item).test(path))),
+    []
+  );
 
 export default class SiderMenu extends PureComponent {
   constructor(props) {

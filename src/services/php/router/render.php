@@ -81,13 +81,14 @@ function qwp_is_global_app_settings_request() {
 
     if ($MODULE || !$IS_APP_SETTING_REQ) return false;
 
+    get_validators($validators);
     $app_settings = array(
         'default' => DEFAULT_MODULE,
         'moduleSep' => QWP_MODULE_SEP,
         'enableHeaderNav' => QWP_ENABLE_HEADER_NAV,
         'lang' => array(),
         'headerNav' => QWP_ENABLE_HEADER_NAV ? qwp_get_default_header_nav() : array(),
-        'validators' => get_input_rules(),
+        'validators' => $validators,
         'footer' => qwp_get_footer(),
     );
     $lang = null;
@@ -129,16 +130,17 @@ function qwp_render_css() {
 function qwp_create_page_info() {
     global $S, $FORM_VALIDATOR, $FORMS, $PAGE, $MODULE_URI;
 
-    $validators = array();
+    $form_validators = array();
     foreach ($FORM_VALIDATOR as $item) {
         $selector = $item['cssSelector'];
         unset($item['cssSelector']);
-        $validators[$selector] = $item;
+        $form_validators[$selector] = $item;
     }
+    get_validators($validators);
     $qwp_page = array(
-        'validator' => $validators,
+        'formRules' => $form_validators,
         'forms' => $FORMS,
-        'inputRules' => get_input_rules(),
+        'validators' => $validators,
         'search' => $S,
         'm' => $MODULE_URI,
         'p' => $PAGE,

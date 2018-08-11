@@ -57,7 +57,7 @@ function replaceMockCode() {
 }
 const tmpl2 = '/* AUTO_IMPORT */';
 const tmpl3 = '/* AUTO */';
-function replaceMockServiceCode() {
+function replaceMockServiceStubCode() {
   const p = path.join(mockServicePath, 'index.js');
   let code = getFileContent(p);
   let r = util.format("const %s = require('./%s');\r\n%s", modelName, modelName, tmpl2);
@@ -74,11 +74,21 @@ function replaceRequestCode() {
   code = code.replace(/User/g, objectUpperCaseName);
   fs.writeFileSync(path.join(requestsPath, modelName + '.js'), code);
 }
+function replaceMockServiceCode() {
+  const mockServiceCodePath = path.join(mockServicePath, modelName + '.js');
+  fs.copyFileSync(path.join(crudPath, 'user_mock.js'), mockServiceCodePath);
+  replaceCode(mockServiceCodePath, mockServiceCodePath);
+  let code = getFileContent(mockServiceCodePath);
+  const r = util.format("const routerPath = '/%s';", argv.path);
+  code = code.replace("const routerPath = '/';", r);
+  fs.writeFileSync(mockServiceCodePath, code);
+}
 function main() {
   if (!argv.path) {
     console.log(chalk.yellow('Router path is required'));
     return false;
   }
+  argv.path = argv.path.trim('/');
   console.log(argv.path.split('/'));
   modulePath = path.join(appsPath, argv.path);
   objectName = path.basename(modulePath);
@@ -95,10 +105,10 @@ function main() {
   replaceCode(path.join(crudPath, 'user.less'), modulePath + '.less');
   replaceCode(path.join(crudPath, 'UserDialog.js'), path.join(moduleDir, objectUpperCaseName + 'Dialog.js'));
   replaceCode(path.join(crudPath, 'user_model.js'), path.join(modelsPath, modelName + '.js'));
-  fs.copyFileSync(path.join(crudPath, 'user_mock.js'), path.join(mockServicePath, modelName + '.js'));
+  replaceMockServiceCode();
   replaceRequestCode();
   replaceMockCode();
-  replaceMockServiceCode();
+  replaceMockServiceStubCode();
   console.log(chalk.green('Finished'));
   console.log(chalk.green('Remember to change router.js file: ' + path.join(moduleDir, 'router.js')));
   console.log({

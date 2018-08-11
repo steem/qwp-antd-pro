@@ -8,6 +8,7 @@ const {
 const moduleMaps = {
   '/system/user': 'user',
   '/system/org': 'org',
+  '/sample/profile/books': 'books',
   /* moduleMaps */
 }
 

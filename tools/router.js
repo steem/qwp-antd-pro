@@ -36,7 +36,7 @@ function addRouter(router, parentPath, parentIdentity) {
   let parentModels = false;
   if (router.models) {
     if (!_.isArray(router.models)) router.models = [router.models];
-    parentModels = "['" + router.models.join("','");
+    parentModels = "['" + router.models.join("','") + "'";
   }
   if (router.icon) routersIcon[parentPath.substr(0, parentPath.length - 1)] = router.icon;
   if (!_.isArray(router.items)) router.items = [router.items];
@@ -65,21 +65,23 @@ function addRouter(router, parentPath, parentIdentity) {
     routers[key] = [item.path || parentIdentity, item.icon ? item.icon : '', router.page || item.page, isPublic];
     if (isPublic) updatePublicRouters(key);
     let code = "'" + key + "': { component: dynamicWrapper(app, ";
-    if (item.selfModels && !_.isArray(item.selfModels)) item.selfModels = [item.selfModels];
-    else if (item.models && !_.isArray(item.models)) item.models = [item.models];
-    if (parentModels || (item.selfModels && item.selfModels.length > 0) ||
-      (item.models && item.models.length > 0)) {
-      if (!item.selfModels && parentModels) {
-        code += parentModels;
-      } else if (item.selfModels || item.models) {
+    if (!item.selfModels) item.selfModels = [];
+    if (!item.models) item.models = [];
+    if (!_.isArray(item.selfModels)) item.selfModels = [item.selfModels];
+    if (!_.isArray(item.models)) item.models = [item.models];
+    if (parentModels || item.selfModels.length > 0 || item.models.length > 0) {
+      if (!parentModels || item.selfModels.length > 0) {
         code += "['";
+      } else {
+        code += parentModels;
       }
-      if (item.selfModels) {
-        code += item.selfModels.join("','");
-      } else if (item.models) {
-        code += item.models.join("','");
+      if (item.selfModels.length > 0) {
+        code += item.selfModels.join("', '") + "'";
+      } else if (item.models.length > 0) {
+        if (parentModels) code += ", '";
+        code += item.models.join("', '") + "'";
       }
-      code += "']";
+      code += "]";
     } else {
       code += '[]';
     }

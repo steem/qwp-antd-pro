@@ -8,7 +8,7 @@ import {
 } from 'antd';
 import AutoSizeDialog from 'components/Dialog';
 import DigitsInput from 'components/Helper/DigitsInput';
-import { createSubmitHander, getFieldDecorator, isFileValid } from 'utils/form';
+import { createSubmitHandler, getFieldDecorator, isFileValid } from 'utils/form';
 import { getFileUploadUrl, getUserAvatarUrl } from 'utils/request';
 import { showOpsNotification, showErrorMessage } from 'utils/utils';
 import { l } from 'utils/localization';
@@ -82,7 +82,7 @@ export default class UserDialog extends PureComponent {
         title={isEdit ? '编辑用户信息' : '创建新用户'}
         visible={modalVisible}
         loading={loading} 
-        onOk={createSubmitHander(form, onOk, null, null, this.beforeSubmit.bind(this))} 
+        onOk={createSubmitHandler(form, onOk, null, null, this.beforeSubmit.bind(this))} 
         onCancel={() => handleModalVisible(false)}
       >
         {!isEdit && (

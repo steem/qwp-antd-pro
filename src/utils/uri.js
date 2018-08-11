@@ -90,12 +90,13 @@ function ops ({ op, m, mock, restfulApi, ...data }) {
     if (m) s = join(s, 'm=' + m);
     if (op) s = join(s, 'op=' + op);
     if (d) s = join(s, d);
-    return (!mock && !config.useMockSerivce ? config.servicePrefix : config.mockServicePrefix) + s
+    return (!mock && !config.useMockSerivce ? config.servicePrefix : config.mockServicePrefix) + '/?' + s
   }
-  s = join(s, (m || '') + '/?');
+  s = join(s, m || '');
+  if (op || d) s += '/?';
   if (op) s = join(s, 'op=' + op);
   if (d) s = join(s, d);
-  return s;
+  return (!mock && !config.useMockSerivce ? config.servicePrefix : config.mockServicePrefix) + s;
 }
 
 function isPassportComponent (c) {

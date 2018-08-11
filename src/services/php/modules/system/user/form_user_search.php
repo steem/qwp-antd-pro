@@ -10,5 +10,8 @@ $form_rule = array(
             'digits' => true,
             'range' => [1, 200],
         ),
+        'create_time' => array(
+            'datetime' => true,
+        ),
     ),
 );
