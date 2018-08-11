@@ -22,7 +22,7 @@
 
 进入目录安装依赖:
 
-    npm i 或者 yarn install
+    npm install 或者 yarn install
 
 开发：
 
@@ -67,4 +67,4 @@ router:java需根据java后端框架自行编写代码来实现
 由于路由需要rewrite支持，请参考
 [#269](https://github.com/zuiidea/antd-admin/issues/269)
 
-后台service部分也可以通过jsonp方式独立部署
+后端services在dev模式，可通过.webpackrc.js中的proxy部分，做path rewrite。

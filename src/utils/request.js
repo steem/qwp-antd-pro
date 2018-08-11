@@ -2,7 +2,6 @@ import fetch from 'dva/fetch';
 import _ from 'lodash';
 import { showOpsNotification, showErrorMessage } from './utils';
 import uri from './uri';
-import config from './config';
 import { l } from './localization';
 import store from '../index';
 
@@ -38,7 +37,7 @@ function showError(e) {
   if (e.name === -1) {
     showErrorMessage(l('Please login'));
     store.dispatch({
-      type: config.loginPath,
+      type: 'main/init',
     });
     return;
   }
@@ -111,13 +110,15 @@ export default function request(url, options) {
     .then(checkStatus)
     .then(response => {
       if (response.headers.get('Content-Type').toLowerCase().indexOf('application/json') >= 0) {
-        const ret = response.json();
-        if (ret && ret.notLogin) {
-          throwError(-1);
-        }
-        return ret;
+        return response.json();
       }
       return response.text();
+    })
+    .then(ret => {
+      if (ret && ret.notLogin) {
+        throwError('', -1, ret);
+      }
+      return ret;
     })
     .catch(showError);
 }
