@@ -13,7 +13,7 @@ const formName = 'user';
 @Form.create()
 export default class UserDialog extends PureComponent {
 
-  onOk = (err, fields, cb) => {
+  onOk = (err, fields, resetFields) => {
     if (err) {
       showErrorMessage(err);
       return;
@@ -25,7 +25,7 @@ export default class UserDialog extends PureComponent {
       type: `user/${this.props.isEdit ? 'edit' : 'create'}`,
       payload: fields,
       callback: () => {
-        cb();
+        resetFields();
         this.handleModalVisible(false);
       },
     });
