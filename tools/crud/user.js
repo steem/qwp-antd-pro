@@ -196,13 +196,13 @@ export default class TableList extends PureComponent {
             </FormItem>
           </Col>
           <Col md={8} sm={24}>
-            <FormItem label="姓名">
+            <FormItem label="名称">
               {getFieldDecorator(form, settings, searchFormName, 'name')(<Input placeholder="请输入" />)}
             </FormItem>
           </Col>
           <Col md={8} sm={24}>
             <FormItem label="描述">
-              {getFieldDecorator(form, settings, searchFormName, 'desc')(<Input placeholder="请输入" />)}
+              {getFieldDecorator(form, settings, searchFormName, 'description')(<Input placeholder="请输入" />)}
             </FormItem>
           </Col>
         </Row>

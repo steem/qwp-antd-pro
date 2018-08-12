@@ -22,7 +22,7 @@ export default class BooksDialog extends PureComponent {
     if (this.props.isEdit) {
       fields.id = this.props.values.id;
     }
-    fields.f.tags = this.state.tags || [];
+    fields.f.tags = this.state && this.state.tags ? this.state.tags : this.props.values.tags;
     this.props.dispatch({
       type: `books/${this.props.isEdit ? 'edit' : 'create'}`,
       payload: fields,
@@ -59,7 +59,7 @@ export default class BooksDialog extends PureComponent {
           <MultiTags color="blue" saveTags={this.saveTags.bind(this)} maxLength={20} tags={values && values.tags ? values.tags : []} />
         </FormItem>
         <FormItem labelCol={{ span: 5 }} wrapperCol={{ span: 15 }} label="描述">
-          {getFieldDecorator(form, settings, formName, 'desc', values)(<Input placeholder="请输入" />)}
+          {getFieldDecorator(form, settings, formName, 'description', values)(<Input placeholder="请输入" />)}
         </FormItem>
       </AutoSizeDialog>
     );

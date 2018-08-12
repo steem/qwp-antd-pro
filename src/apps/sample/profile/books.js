@@ -15,6 +15,7 @@ import {
   Alert,
   Tooltip,
 } from 'antd';
+import _ from 'lodash';
 import StandardTable from 'components/StandardTable';
 import DropOption from 'components/DropOption';
 import { createSubmitHandlerForSearch, getFieldDecorator } from 'utils/form';
@@ -27,9 +28,10 @@ import styles from './books.less';
 const FormItem = Form.Item;
 const searchFormName = 'search';
 
-function createBookTags(tags) {
-  if (!tags || tags.length === 0) return (<span>未设置</span>);
-  return tags.map(item => {
+function createBookTags(r) {
+  if (!r.tags || r.tags.length === 0) return (<span>未设置</span>);
+  if (_.isString(r.tags)) r.tags = JSON.parse(r.tags);
+  return r.tags.map(item => {
     const isLongTag = item.length > 10;
     const tagElem = (<Tag color="magenta">{isLongTag ? `${item.slice(0, 10)}...` : item}</Tag>);
     return isLongTag ? <Tooltip title={item} key={item}>{tagElem}</Tooltip> : tagElem;
@@ -206,13 +208,13 @@ export default class TableList extends PureComponent {
             </FormItem>
           </Col>
           <Col md={8} sm={24}>
-            <FormItem label="姓名">
+            <FormItem label="名称">
               {getFieldDecorator(form, settings, searchFormName, 'name')(<Input placeholder="请输入" />)}
             </FormItem>
           </Col>
           <Col md={8} sm={24}>
             <FormItem label="描述">
-              {getFieldDecorator(form, settings, searchFormName, 'desc')(<Input placeholder="请输入" />)}
+              {getFieldDecorator(form, settings, searchFormName, 'description')(<Input placeholder="请输入" />)}
             </FormItem>
           </Col>
         </Row>
@@ -254,7 +256,7 @@ export default class TableList extends PureComponent {
             return (<a title={l('Click to update books information')} onClick={() => ui.editBooks(record, true)}>{text}</a>);
           },
           tags (text, record) {
-            return createBookTags(record.tags);
+            return createBookTags(record);
           },
           operation (text, record, ui) {
             return (

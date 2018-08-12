@@ -4,6 +4,12 @@ function get_predefined_ops(&$ops) {
         '/sample/exception' => array(
               'list' => array('name' => 'list', 'public' => true),
          ),
+        '/sample/profile/books' => array(
+              'create' => array('name' => 'create', 'public' => true),
+              'del' => array('name' => 'del', 'public' => true),
+              'edit' => array('name' => 'edit', 'public' => true),
+              'list' => array('name' => 'list', 'public' => true),
+         ),
         '/system/settings' => array(
               'create_settings' => array('name' => 'create_settings', 'public' => true),
               'del_settings' => array('name' => 'del_settings', 'public' => true),

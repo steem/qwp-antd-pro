@@ -20,27 +20,27 @@ const L = {};
 // all you need is to change the data rule and other page settings
 const myOps = createOps({
   name: '@name',
-  desc: '@string(lower, 6, 12)',
+  description: '@string(lower, 6, 12)',
   create_time: '@datetime',
 }, routerPath, L, {
   user: {
     names: [
       ["name", "Name", "10", true, true],
       ["create_time", "Time", "30", true, true],
-      ["desc", "Description", "30"],
+      ["description", "Description", "30"],
       ["", "", "20", false, "operation"],
     ],
   },
 }, {
   user: {
     id: { required: true, 'digits': true, op: 'edit', ui: false },
-    name: { required: true, rangelength: [5, 32], 'op_edit': 2 },
-    desc: { rangelength: [2, 128] },
+    name: { required: true, rangelength: [1, 256], 'op_edit': 2 },
+    description: { rangelength: [1, 256] },
   },
   search: {
-    name: { rangelength: [5, 32] },
-    desc: { rangelength: [2, 128] },
-    create_time: { datetime: true },
+    name: { rangelength: [1, 256] },
+    description: { rangelength: [1, 256] },
+    create_time: { date: true },
   },
 }, {
   create_time: (item, filter) => {

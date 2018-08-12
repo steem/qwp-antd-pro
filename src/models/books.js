@@ -60,7 +60,7 @@ export default {
       }
     },
 
-    *selectedBookss({ payload }, { put }) {
+    *selectedBooks({ payload }, { put }) {
       yield put({
         type: 'updateState',
         payload: {

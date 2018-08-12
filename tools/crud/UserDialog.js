@@ -48,7 +48,7 @@ export default class UserDialog extends PureComponent {
           {getFieldDecorator(form, settings, formName, 'name', values)(<Input placeholder="请输入" disabled={isEdit} />)}
         </FormItem>)}
         <FormItem labelCol={{ span: 5 }} wrapperCol={{ span: 15 }} label="描述">
-          {getFieldDecorator(form, settings, formName, 'desc', values)(<Input placeholder="请输入" />)}
+          {getFieldDecorator(form, settings, formName, 'description', values)(<Input placeholder="请输入" />)}
         </FormItem>
       </AutoSizeDialog>
     );

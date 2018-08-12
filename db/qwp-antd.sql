@@ -15,6 +15,18 @@
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
+
+CREATE TABLE `tb_books` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(256) NULL,
+  `tags` TEXT NULL,
+  `description` TEXT NULL,
+  `create_time` INT UNSIGNED NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `Index_name` (`name` ASC),
+  INDEX `Index_create_time` (`create_time` ASC)
+);
+  
 --
 -- Table structure for table `sys_modules`
 --
@@ -25,7 +37,7 @@ DROP TABLE IF EXISTS `sys_modules`;
 CREATE TABLE `sys_modules` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `path` text NOT NULL,
-  `desc` text,
+  `description` text,
   `type` enum('m','p','op') NOT NULL DEFAULT 'm',
   `seq` int(11) DEFAULT '1',
   `enabled` enum('y','n') NOT NULL DEFAULT 'y',
@@ -62,7 +74,7 @@ DROP TABLE IF EXISTS `sys_role`;
 CREATE TABLE `sys_role` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(64) DEFAULT NULL,
-  `desc` varchar(255) DEFAULT NULL,
+  `description` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `Index_name` (`name`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
@@ -98,7 +110,6 @@ CREATE TABLE `sys_role_modules` (
 
 LOCK TABLES `sys_role_modules` WRITE;
 /*!40000 ALTER TABLE `sys_role_modules` DISABLE KEYS */;
-INSERT INTO `sys_role_modules` VALUES (1,1),(2,1);
 /*!40000 ALTER TABLE `sys_role_modules` ENABLE KEYS */;
 UNLOCK TABLES;
 

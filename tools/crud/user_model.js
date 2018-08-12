@@ -60,7 +60,7 @@ export default {
       }
     },
 
-    *selectedUsers({ payload }, { put }) {
+    *selectedUser({ payload }, { put }) {
       yield put({
         type: 'updateState',
         payload: {
@@ -92,7 +92,7 @@ export default {
         ids = objs.map(r => r.id).join(',');
       }
       const data = yield call(userService.remove, { f: ids });
-      if (data) showOpsNotification(data, l('Delete users'), l('Users are deleted successfully'))
+      if (data) showOpsNotification(data, l('Delete user'), l('User are deleted successfully'))
       if (data && data.success) {
         const p = yield select(s => s.user.data.pagination);
         yield call(fetchUsers, call, put, p, true);
