@@ -143,7 +143,7 @@ export default class UserDialog extends PureComponent {
             showUploadList={false}
             beforeUpload={this.beforeUpload.bind(this)}
             onChange={this.onChange.bind(this)}
-            action={getFileUploadUrl('/system/user', 'avatar')}
+            action={getFileUploadUrl('/system/user', 'upload_avatar')}
             listType="picture-card"
           >
             {(isEdit && values.avatar_type) || this.state.url ? <img src={isEdit && !this.state.url ? getUserAvatarUrl({id: values.id}) : this.state.url} alt="avatar" width="128px" height="128px" /> : uploadButton}
