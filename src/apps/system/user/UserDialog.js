@@ -57,7 +57,7 @@ export default class UserDialog extends PureComponent {
   beforeSubmit () {
     if (this.state.loading) {
       showErrorMessage(l('正在上传头像，请稍后！'));
-      return;
+      return false;
     }
     if (!this.state.url) {
       showErrorMessage(l('请上传头像'));
