@@ -22,13 +22,19 @@ const myOps = createOps({
   name: '@name',
   desc: '@string(lower, 6, 12)',
   create_time: '@datetime',
+  tags() {
+    return Mock.mock({
+      'data|3-6': ['@string(lower, 6, 12)'],
+    }).data;
+  }
 }, routerPath, L, {
   books: {
     names: [
       ["name", "Name", "10", true, true],
-      ["create_time", "Time", "30", true, true],
-      ["desc", "Description", "30"],
-      ["", "", "20", false, "operation"],
+      ["tags", "Tags", "30"],
+      ["create_time", "Time", "10", true, true],
+      ["desc", "Description", "20"],
+      ["", "", "10", false, "operation"],
     ],
   },
 }, {

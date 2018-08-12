@@ -124,15 +124,16 @@ export default function request(url, options) {
 }
 
 const mock = false;
+const restfulApi = false;
 
 export function getFileUploadUrl(m, op) {
   if (!op) op = 'file_upload';
-  return uri.ops({ op, m, mock });
+  return uri.ops({ op, m, mock, restfulApi });
 }
 
 export function getUserAvatarUrl(params) {
   const op = 'avatar';
   const m = '/system/user';
 
-  return uri.ops({ op, m, mock, ...params });
+  return uri.ops({ op, m, mock, restfulApi, ...params });
 }

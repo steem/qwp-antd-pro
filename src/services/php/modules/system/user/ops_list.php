@@ -22,7 +22,7 @@ function list_users(&$msg, &$data) {
     $options = array(
         'data modal' => $user_modal,
         'left join' => array(
-            array('sys_role', 'r', 'r.id=u.role')
+            array('sys_role', 'r', 'r.id=u.role'),
         ),
         'where' => 'u.id<>1 and u.role<>1',
         'data converter' => 'convert_user',

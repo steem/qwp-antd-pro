@@ -6,13 +6,14 @@ import {
   Card,
   Form,
   Input,
-  Select,
+  Tag,
   Icon,
   Button,
   Dropdown,
   Menu,
   DatePicker,
   Alert,
+  Tooltip,
 } from 'antd';
 import StandardTable from 'components/StandardTable';
 import DropOption from 'components/DropOption';
@@ -25,6 +26,15 @@ import styles from './books.less';
 
 const FormItem = Form.Item;
 const searchFormName = 'search';
+
+function createBookTags(tags) {
+  if (!tags || tags.length === 0) return (<span>未设置</span>);
+  return tags.map(item => {
+    const isLongTag = item.length > 10;
+    const tagElem = (<Tag color="magenta">{isLongTag ? `${item.slice(0, 10)}...` : item}</Tag>);
+    return isLongTag ? <Tooltip title={item} key={item}>{tagElem}</Tooltip> : tagElem;
+  });
+}
 
 @connect(({ books, loading }) => ({
   books,
@@ -150,24 +160,6 @@ export default class TableList extends PureComponent {
     });
   };
 
-  handleBooksDialog = (err, fields, cb) => {
-    if (err) {
-      showErrorMessage(err);
-      return;
-    }
-    if (this.state.isEdit) {
-      fields.id = this.state.books ? this.state.books.id : this.props.books.selectedRows[0].id;
-    }
-    this.props.dispatch({
-      type: `books/${this.state.isEdit ? 'edit' : 'create'}`,
-      payload: fields,
-      callback: () => {
-        cb();
-        this.handleModalVisible(false);
-      },
-    });
-  };
-
   renderSimpleForm() {
     const { form, books: { settings } } = this.props;
 
@@ -255,24 +247,29 @@ export default class TableList extends PureComponent {
 
     const { modalVisible } = this.state;
 
-    const columns = createTableColumn(settings.tables.books, {
-      render: {
-        name (text, record, ui) {
-          return (<a title={l('Click to update books information')} onClick={() => ui.editBooks(record, true)}>{text}</a>);
+    if (!this.columns) {
+      this.columns = createTableColumn(settings.tables.books, {
+        render: {
+          name (text, record, ui) {
+            return (<a title={l('Click to update books information')} onClick={() => ui.editBooks(record, true)}>{text}</a>);
+          },
+          tags (text, record) {
+            return createBookTags(record.tags);
+          },
+          operation (text, record, ui) {
+            return (
+              <DropOption 
+                onMenuClick={e => ui.handleMenuClick(record, e)}
+                menuOptions={[{ key: 'edit', name: l('Edit') }, { key: 'remove', name: l('Delete') }]}
+              />
+            )
+          },
         },
-        operation (text, record, ui) {
-          return (
-            <DropOption 
-              onMenuClick={e => ui.handleMenuClick(record, e)}
-              menuOptions={[{ key: 'edit', name: l('Edit') }, { key: 'remove', name: l('Delete') }]}
-            />
-          )
+        className: {
+          avatar: styles.avatar,
         },
-      },
-      className: {
-        avatar: styles.avatar,
-      },
-    }, this);
+      }, this);  
+    }
 
     const menu = (
       <Menu onClick={e => this.handleMenuClick(null, e)} selectedKeys={[]}>
@@ -283,7 +280,7 @@ export default class TableList extends PureComponent {
 
     const dialogProps = {
       settings,
-      onOk: this.handleBooksDialog,
+      dispatch: this.props.dispatch,
       handleModalVisible: this.handleModalVisible,
       values: this.state.isEdit ? (this.state.books || this.props.books.selectedRows[0]) : {},
       isEdit: this.state.isEdit,
@@ -328,7 +325,7 @@ export default class TableList extends PureComponent {
             selectedRows={books.selectedRows}
             loading={loading.effects['books/init'] || loading.effects['books/fetch']}
             data={data}
-            columns={columns}
+            columns={this.columns}
             onSelectRow={this.handleSelectRows}
             onChange={this.handleStandardTableChange}
           />

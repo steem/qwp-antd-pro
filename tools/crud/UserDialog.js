@@ -26,7 +26,7 @@ export default class UserDialog extends PureComponent {
       payload: fields,
       callback: () => {
         resetFields();
-        this.handleModalVisible(false);
+        this.props.handleModalVisible(false);
       },
     });
   };

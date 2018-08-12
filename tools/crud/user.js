@@ -237,24 +237,26 @@ export default class TableList extends PureComponent {
 
     const { modalVisible } = this.state;
 
-    const columns = createTableColumn(settings.tables.user, {
-      render: {
-        name (text, record, ui) {
-          return (<a title={l('Click to update user information')} onClick={() => ui.editUser(record, true)}>{text}</a>);
+    if (!this.columns) {
+      this.columns = createTableColumn(settings.tables.user, {
+        render: {
+          name (text, record, ui) {
+            return (<a title={l('Click to update user information')} onClick={() => ui.editUser(record, true)}>{text}</a>);
+          },
+          operation (text, record, ui) {
+            return (
+              <DropOption 
+                onMenuClick={e => ui.handleMenuClick(record, e)}
+                menuOptions={[{ key: 'edit', name: l('Edit') }, { key: 'remove', name: l('Delete') }]}
+              />
+            )
+          },
         },
-        operation (text, record, ui) {
-          return (
-            <DropOption 
-              onMenuClick={e => ui.handleMenuClick(record, e)}
-              menuOptions={[{ key: 'edit', name: l('Edit') }, { key: 'remove', name: l('Delete') }]}
-            />
-          )
+        className: {
+          avatar: styles.avatar,
         },
-      },
-      className: {
-        avatar: styles.avatar,
-      },
-    }, this);
+      }, this);
+    }
 
     const menu = (
       <Menu onClick={e => this.handleMenuClick(null, e)} selectedKeys={[]}>
@@ -310,7 +312,7 @@ export default class TableList extends PureComponent {
             selectedRows={user.selectedRows}
             loading={loading.effects['user/init'] || loading.effects['user/fetch']}
             data={data}
-            columns={columns}
+            columns={this.columns}
             onSelectRow={this.handleSelectRows}
             onChange={this.handleStandardTableChange}
           />
