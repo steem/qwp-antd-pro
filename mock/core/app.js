@@ -27,7 +27,7 @@ const settings = {
         {
           key: 'github',
           icon: 'github',
-          href: 'https://github.com/ant-design/ant-design-pro',
+          href: 'https://github.com/steem/qwp-antd-pro',
         },
         {
           key: 'Ant Design',
