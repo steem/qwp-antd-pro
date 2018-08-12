@@ -8,6 +8,14 @@ const baseUri = {
   mock,
 };
 
+export function getFileUploadUrl() {
+  return uri.ops({ op: 'upload_avatar', ...baseUri })
+}
+
+export function getUserAvatarUrl(params) {
+  return uri.ops({ op: 'avatar', ...baseUri, ...params })
+}
+
 export async function $ (params) {
   const op = '$'
   return request({

@@ -9,7 +9,7 @@ import {
 import AutoSizeDialog from 'components/Dialog';
 import DigitsInput from 'components/Helper/DigitsInput';
 import { createSubmitHandler, getFieldDecorator, isFileValid } from 'utils/form';
-import { getFileUploadUrl, getUserAvatarUrl } from 'utils/request';
+import { getFileUploadUrl, getUserAvatarUrl } from 'requests/user';
 import { showOpsNotification, showErrorMessage } from 'utils/utils';
 import { l } from 'utils/localization';
 
@@ -143,7 +143,7 @@ export default class UserDialog extends PureComponent {
             showUploadList={false}
             beforeUpload={this.beforeUpload.bind(this)}
             onChange={this.onChange.bind(this)}
-            action={getFileUploadUrl('/system/user', 'upload_avatar')}
+            action={getFileUploadUrl()}
             listType="picture-card"
           >
             {(isEdit && values.avatar_type) || this.state.url ? <img src={isEdit && !this.state.url ? getUserAvatarUrl({id: values.id}) : this.state.url} alt="avatar" width="128px" height="128px" /> : uploadButton}
