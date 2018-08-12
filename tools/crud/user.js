@@ -150,24 +150,6 @@ export default class TableList extends PureComponent {
     });
   };
 
-  handleUserDialog = (err, fields, cb) => {
-    if (err) {
-      showErrorMessage(err);
-      return;
-    }
-    if (this.state.isEdit) {
-      fields.id = this.state.user ? this.state.user.id : this.props.user.selectedRows[0].id;
-    }
-    this.props.dispatch({
-      type: `user/${this.state.isEdit ? 'edit' : 'create'}`,
-      payload: fields,
-      callback: () => {
-        cb();
-        this.handleModalVisible(false);
-      },
-    });
-  };
-
   renderSimpleForm() {
     const { form, user: { settings } } = this.props;
 
@@ -283,7 +265,7 @@ export default class TableList extends PureComponent {
 
     const dialogProps = {
       settings,
-      onOk: this.handleUserDialog,
+      dispatch: this.props.dispatch,
       handleModalVisible: this.handleModalVisible,
       values: this.state.isEdit ? (this.state.user || this.props.user.selectedRows[0]) : {},
       isEdit: this.state.isEdit,

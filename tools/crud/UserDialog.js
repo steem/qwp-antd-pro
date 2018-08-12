@@ -5,15 +5,34 @@ import {
 } from 'antd';
 import AutoSizeDialog from 'components/Dialog';
 import { createSubmitHandler, getFieldDecorator } from 'utils/form';
+import { showErrorMessage } from 'utils/utils';
 
 const FormItem = Form.Item;
+const formName = 'user';
 
 @Form.create()
 export default class UserDialog extends PureComponent {
 
+  onOk = (err, fields, cb) => {
+    if (err) {
+      showErrorMessage(err);
+      return;
+    }
+    if (this.props.isEdit) {
+      fields.id = this.props.values.id;
+    }
+    this.props.dispatch({
+      type: `user/${this.props.isEdit ? 'edit' : 'create'}`,
+      payload: fields,
+      callback: () => {
+        cb();
+        this.handleModalVisible(false);
+      },
+    });
+  };
+
   render() {
-    const { modalVisible, form, settings, loading, values, onOk, handleModalVisible, isEdit } = this.props;
-    const formName = 'user';
+    const { modalVisible, form, settings, loading, values, handleModalVisible, isEdit } = this.props;
 
     return (
       <AutoSizeDialog 
@@ -21,7 +40,7 @@ export default class UserDialog extends PureComponent {
         visible={modalVisible}
         loading={loading}
         height={300}
-        onOk={createSubmitHandler(form, onOk)} 
+        onOk={createSubmitHandler(form, this.onOk.bind(this))} 
         onCancel={() => handleModalVisible(false)}
       >
         {!isEdit && (
