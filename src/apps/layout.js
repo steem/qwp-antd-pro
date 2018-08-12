@@ -160,6 +160,12 @@ class AppLayout extends React.Component {
       });
     }
   };
+
+  handleIconClick = (e) => {
+    const key = e.currentTarget.getAttribute('tag');
+
+  };
+
   render() {
     const {
       collapsed,

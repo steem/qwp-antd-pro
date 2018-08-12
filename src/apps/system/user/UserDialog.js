@@ -15,12 +15,12 @@ import { l } from 'utils/localization';
 
 const FormItem = Form.Item;
 const Option = Select.Option;
+const formName = 'user';
 
 @Form.create()
 export default class UserDialog extends PureComponent {
   state = {
     loading: false,
-    formName: 'user',
   };
 
   onChange (info) {
@@ -46,7 +46,7 @@ export default class UserDialog extends PureComponent {
   }
 
   beforeUpload (file) {
-    const ret = isFileValid(this.props.settings, this.state.formName, 'avatar', [file]);
+    const ret = isFileValid(this.props.settings, formName, 'avatar', [file]);
     if (ret !== true) {
       showErrorMessage(ret);
       return false;
@@ -66,9 +66,26 @@ export default class UserDialog extends PureComponent {
     }
   }
 
+  onOk = (err, fields, cb) => {
+    if (err) {
+      showErrorMessage(err);
+      return;
+    }
+    if (this.props.isEdit) {
+      fields.id = this.props.values.id;
+    }
+    this.props.dispatch({
+      type: `users/${this.props.isEdit ? 'edit' : 'create'}`,
+      payload: fields,
+      callback: () => {
+        cb();
+        this.props.handleModalVisible(false);
+      },
+    });
+  }
+
   render() {
-    const { modalVisible, form, settings, loading, values, onOk, handleModalVisible, isEdit } = this.props;
-    const formName = 'user';
+    const { modalVisible, form, settings, loading, values, handleModalVisible, isEdit } = this.props;
 
     const uploadButton = (
       <div>
@@ -81,8 +98,8 @@ export default class UserDialog extends PureComponent {
       <AutoSizeDialog 
         title={isEdit ? '编辑用户信息' : '创建新用户'}
         visible={modalVisible}
-        loading={loading} 
-        onOk={createSubmitHandler(form, onOk, null, null, this.beforeSubmit.bind(this))} 
+        loading={loading}
+        onOk={createSubmitHandler(form, this.onOk.bind(this), null, null, this.beforeSubmit.bind(this))}
         onCancel={() => handleModalVisible(false)}
       >
         {!isEdit && (
