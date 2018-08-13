@@ -10,7 +10,7 @@ function convert_search_data(&$s) {
         unset($s['name']);
     }
     if (isset($s['create_time'])) {
-        $s['create_time'] = datetime_to_int($s['create_time']);
+        $s['create_time'] = date_to_int($s['create_time']);
     }
 }
 function convert_user(&$r) {

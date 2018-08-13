@@ -154,7 +154,7 @@ export default class TableList extends PureComponent {
     const { form, user: { settings } } = this.props;
 
     return (
-      <Form onSubmit={createSubmitHandlerForSearch(this.props.form, this.handleSearch)} layout="inline">
+      <Form onSubmit={this.searchSubmitHandler} layout="inline">
         <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
           <Col md={8} sm={24}>
             <FormItem label="创建日期">
@@ -188,7 +188,7 @@ export default class TableList extends PureComponent {
     const { form, user: { settings } } = this.props;
 
     return (
-      <Form onSubmit={createSubmitHandlerForSearch(this.props.form, this.handleSearch)} layout="inline">
+      <Form onSubmit={this.searchSubmitHandler} layout="inline">
         <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
           <Col md={8} sm={24}>
             <FormItem label="创建日期">
@@ -235,6 +235,15 @@ export default class TableList extends PureComponent {
       return null;
     }
 
+    if (!this.searchSubmitHandler) {
+      this.searchSubmitHandler = createSubmitHandlerForSearch({
+        form: this.props.form,
+        onSubmit: this.handleSearch,
+        formRules: settings.formRules,
+        formName: searchFormName,
+      })
+    }
+  
     const { modalVisible } = this.state;
 
     if (!this.columns) {

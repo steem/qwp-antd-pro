@@ -2,13 +2,14 @@
 if(!defined('QWP_ROOT')){exit('Invalid Request');}
 
 function add_book(&$msg, &$data) {
-    global $F;
+    global $F, $DUP_RECORD_MSG;
 
     if (isset($F['tags']) && !is_array($F['tags'])) {
         return false;
     }
+    $DUP_RECORD_MSG = 'Book name is same, please use another name';
     $F['create_time'] = time();
-    $F['tags'] = isset($F['tags']) ? to_json($F['tags']) : '';
+    $F['tags'] = isset($F['tags']) && $F['tags'] ? to_json($F['tags']) : '';
     db_insert('tb_books')->fields($F)->execute();
 }
 qwp_set_ops_process('add_book', true);

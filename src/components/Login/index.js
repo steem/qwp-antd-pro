@@ -86,6 +86,7 @@ class Login extends Component {
     const { type, tabs } = this.state;
     const TabChildren = [];
     const otherChildren = [];
+
     React.Children.forEach(children, item => {
       if (!item) {
         return;
@@ -97,9 +98,18 @@ class Login extends Component {
         otherChildren.push(item);
       }
     });
+
+    if (!this.submitHandler) {
+      this.submitHandler = createSubmitHandler({
+        form: this.props.form,
+        onSubmit: this.props.onSubmit,
+        activeFileds: this.activeFileds.bind(this),
+      })
+    }
+  
     return (
       <div className={classNames(className, styles.login)}>
-        <Form onSubmit={createSubmitHandler(this.props.form, this.props.onSubmit, this.activeFileds.bind(this))}>
+        <Form onSubmit={this.submitHandler}>
           {tabs.length ? (
             <div>
               <Tabs

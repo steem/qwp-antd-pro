@@ -19,6 +19,7 @@ function qwp_delete_file_in_form(&$f, $field) {
     }
 }
 function qwp_validate_get_error(&$msg, &$val, &$name) {
+    if (is_array($val)) $val = to_json($val);
     if (QWP_SHOW_INVALID_FORM_VALUE) return $msg . '. ' . L('Current value of {0} is: ', $name) . '<pre>'  . $val . '</pre>';
     return $msg;
 }

@@ -204,7 +204,7 @@ function fixRules(rules, op) {
 
 function fillInitialValue(r, itemType, values, name) {
   if (itemType === 'file' || !values || _.isUndefined(values[name])) {
-    if (itemType === 'datetime') {
+    if (itemType && itemType.startsWith('date')) {
       return;
     }
     r.initialValue = '';
@@ -252,10 +252,38 @@ function getDateTimeValue(o) {
   return o.format('YYYY-MM-DD HH:mm:ss');
 }
 
-function formalizedFormValues(values) {
+function formalizedFormValues(values, formRules, formName) {
+  let rule = formRules && formName && formRules[formName] ? formRules[formName] : false;
+
   for (const k in values) {
     if (values[k] && values[k].constructor) {
       const name = values[k].constructor.name;
+
+      if (rule && rule[k] && rule[k].itemType) {
+        let itemType = rule[k].itemType;
+        if (itemType.startsWith('date')) {
+          if (itemType.endsWith('range')) {
+            itemType = itemType.substr(0, itemType.length - 5);
+            if (itemType === 'datetime') {
+              values[k][0] = getDateTimeValue(values[k][0]);
+              values[k][1] = getDateTimeValue(values[k][1]);
+            } else if (itemType === 'date') {
+              values[k][0] = values[k][0].format('YYYY-MM-DD');
+              values[k][1] = values[k][1].format('YYYY-MM-DD');
+            } else if (itemType === 'datehour') {
+              values[k][0] = values[k][0].format('YYYY-MM-DD HH:mm');
+              values[k][1] = values[k][1].format('YYYY-MM-DD HH:mm');
+            }
+          } else if (itemType === 'datetime') {
+            values[k] = getDateTimeValue(values[k]);
+          } else if (itemType === 'date') {
+            values[k] = values[k].format('YYYY-MM-DD');
+          } else if (itemType === 'datehour') {
+            values[k] = values[k].format('YYYY-MM-DD HH:mm');
+          }
+          continue;
+        }
+      }
       if (name === 'Moment') {
         values[k] = getDateTimeValue(values[k]);
       } else if (name === 'Array') {
@@ -272,14 +300,14 @@ function formalizedFormValues(values) {
   }
 }
 
-export function createSubmitHandler (form, onSubmit, activeFields, dataKey, beforeSubmit) {
+export function createSubmitHandler ({form, onSubmit, activeFields, dataKey, beforeSubmit, formRules, formName}) {
   const resetFields = () => form.resetFields();
   if (activeFields) {
     return (e) => {
       e.preventDefault();
       const fields = _.isFunction(activeFields) ? activeFields() : activeFields;
       form.validateFieldsAndScroll(fields, { force: true }, (err, values) => {
-        formalizedFormValues(values);
+        formalizedFormValues(values, formRules, formName);
         if (beforeSubmit && beforeSubmit(values) === false) return;
         if (!dataKey) dataKey = 'f';
         onSubmit(err, {
@@ -291,7 +319,7 @@ export function createSubmitHandler (form, onSubmit, activeFields, dataKey, befo
   return (e) => {
     e.preventDefault();
     form.validateFieldsAndScroll((err, values) => {
-      formalizedFormValues(values);
+      formalizedFormValues(values, formRules, formName);
       if (beforeSubmit && beforeSubmit(values) === false) return;
       if (!dataKey) dataKey = 'f'
       onSubmit(err, {
@@ -301,8 +329,15 @@ export function createSubmitHandler (form, onSubmit, activeFields, dataKey, befo
   };
 }
 
-export function createSubmitHandlerForSearch(form, onSubmit) {
-  return createSubmitHandler(form, onSubmit, false, 's');
+export function createSubmitHandlerForSearch({form, onSubmit, beforeSubmit, formRules, formName}) {
+  return createSubmitHandler({
+    form,
+    onSubmit,
+    beforeSubmit,
+    formRules,
+    formName,
+    dataKey: 's',
+  });
 }
 
 function initErrorMessages() {

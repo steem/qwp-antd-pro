@@ -40,17 +40,23 @@ class MultiTags extends React.Component {
 
   handleInputConfirm = () => {
     const state = this.state;
-    const inputValue = state.inputValue;
+    const inputValue = state.inputValue.trim();
     let isValid = true;
 
     if (inputValue && state.tags.indexOf(inputValue) !== -1) {
       message.error(l('Duplicated tag'));
       isValid = false;
+    } else if (!inputValue) {
+      isValid = false;
     } else {
-      const { maxLength, pattern } = this.props;
+      const { maxLength, minLength, pattern } = this.props;
 
       if (maxLength && inputValue.length > maxLength) {
         message.error(l('The max length is: {0}', maxLength));
+        isValid = false;
+      }
+      if (isValid && minLength && inputValue.length < minLength) {
+        message.error(l('The min length is: {0}', minLength));
         isValid = false;
       }
       if (isValid && pattern) {

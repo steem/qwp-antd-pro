@@ -94,12 +94,20 @@ export default class UserDialog extends PureComponent {
       </div>
     );
 
+    if (!this.submitHandler) {
+      this.submitHandler = createSubmitHandler({
+        form,
+        onSubmit: this.onOk.bind(this),
+        beforeSubmit: this.beforeSubmit.bind(this),
+      })
+    }
+
     return (
       <AutoSizeDialog 
         title={isEdit ? '编辑用户信息' : '创建新用户'}
         visible={modalVisible}
         loading={loading}
-        onOk={createSubmitHandler(form, this.onOk.bind(this), null, null, this.beforeSubmit.bind(this))}
+        onOk={this.submitHandler}
         onCancel={() => handleModalVisible(false)}
       >
         {!isEdit && (

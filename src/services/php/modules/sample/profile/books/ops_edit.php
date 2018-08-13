@@ -11,7 +11,7 @@ function edit_book(&$msg, &$data) {
     if (isset($F['tags']) && !is_array($F['tags'])) {
         return false;
     }
-    $F['tags'] = isset($F['tags']) ? to_json($F['tags']) : '';
+    $F['tags'] = isset($F['tags']) && $F['tags'] ? to_json($F['tags']) : '';
     db_update('tb_books')->fields($F)->condition('id', $id)->execute();
 }
 qwp_set_ops_process('edit_book', true);

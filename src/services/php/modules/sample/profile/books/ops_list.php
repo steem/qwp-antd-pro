@@ -3,7 +3,7 @@ if(!defined('QWP_ROOT')){exit('Invalid Request');}
 
 function convert_search_data(&$s) {
     if (isset($s['create_time'])) {
-        $s['create_time'] = datetime_to_int($s['create_time']);
+        $s['create_time'] = date_to_int($s['create_time']);
     }
 }
 function convert_data(&$r) {

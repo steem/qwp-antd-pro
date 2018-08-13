@@ -2,7 +2,9 @@
 if(!defined('QWP_ROOT')){exit('Invalid Request');}
 
 function add_user(&$msg, &$data) {
-    global $F;
+    global $F, $DUP_RECORD_MSG;
+
+    $DUP_RECORD_MSG = 'User account is duplicated, please use another account name';
     // just for demo of file upload
     if (isset($F['avatar']) && $F['avatar']) {
         $F['avatar_type'] = $F['avatar'][3];

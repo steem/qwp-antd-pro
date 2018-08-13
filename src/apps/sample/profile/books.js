@@ -33,7 +33,11 @@ function createBookTags(r) {
   if (_.isString(r.tags)) r.tags = JSON.parse(r.tags);
   return r.tags.map(item => {
     const isLongTag = item.length > 10;
-    const tagElem = (<Tag color="magenta">{isLongTag ? `${item.slice(0, 10)}...` : item}</Tag>);
+    const props = {
+      color: 'magenta',
+    };
+    if (!isLongTag) props.key = item;
+    const tagElem = (<Tag {...props}>{isLongTag ? `${item.slice(0, 10)}...` : item}</Tag>);
     return isLongTag ? <Tooltip title={item} key={item}>{tagElem}</Tooltip> : tagElem;
   });
 }
@@ -166,7 +170,7 @@ export default class TableList extends PureComponent {
     const { form, books: { settings } } = this.props;
 
     return (
-      <Form onSubmit={createSubmitHandlerForSearch(this.props.form, this.handleSearch)} layout="inline">
+      <Form onSubmit={this.searchSubmitHandler} layout="inline">
         <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
           <Col md={8} sm={24}>
             <FormItem label="创建日期">
@@ -200,7 +204,7 @@ export default class TableList extends PureComponent {
     const { form, books: { settings } } = this.props;
 
     return (
-      <Form onSubmit={createSubmitHandlerForSearch(this.props.form, this.handleSearch)} layout="inline">
+      <Form onSubmit={this.searchSubmitHandler} layout="inline">
         <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
           <Col md={8} sm={24}>
             <FormItem label="创建日期">
@@ -245,6 +249,15 @@ export default class TableList extends PureComponent {
 
     if (!settings.tables.books) {
       return null;
+    }
+
+    if (!this.searchSubmitHandler) {
+      this.searchSubmitHandler = createSubmitHandlerForSearch({
+        form: this.props.form,
+        onSubmit: this.handleSearch,
+        formRules: settings.formRules,
+        formName: searchFormName,
+      })
     }
 
     const { modalVisible } = this.state;

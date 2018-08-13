@@ -9,7 +9,7 @@ if(!defined('IN_MODULE')){exit('Invalid Request');}
 require_once(QWP_CORE_ROOT . '/validator.php');
 
 function _qwp_process_ops(&$msg, &$data, &$msg_type, &$ret) {
-    global $FN_PROCESS_NEED_TRANSACTION;
+    global $FN_PROCESS_NEED_TRANSACTION, $DUP_RECORD_MSG;
     $ctx = false;
     if ($FN_PROCESS_NEED_TRANSACTION) $ctx = db_transaction();
     try {
@@ -24,7 +24,7 @@ function _qwp_process_ops(&$msg, &$data, &$msg_type, &$ret) {
         }
     } catch (PDOException $e) {
         if ($e->errorInfo[1] == 1062) {
-            if (!$msg) $msg = L("Duplicated record when doing ops, please check the parameters!");
+            if (!$msg) $msg = isset($DUP_RECORD_MSG) ? L($DUP_RECORD_MSG) : L("Duplicated record, please check the parameters!");
         } else {
             $msg = L("Failed to execute query: ") . (IN_DEBUG && $e->query_string ? $e->query_string : $e->getMessage());
         }

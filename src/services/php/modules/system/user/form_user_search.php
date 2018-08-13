@@ -11,7 +11,7 @@ $form_rule = array(
             'range' => [1, 200],
         ),
         'create_time' => array(
-            'datetime' => true,
+            'date' => true,
         ),
     ),
 );

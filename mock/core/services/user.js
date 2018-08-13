@@ -63,7 +63,7 @@ const myOps = createOps({
     address: { rangelength: [6, 128] },
   },
   search: {
-    create_time: { datetime: true },
+    create_time: { date: true },
   },
 }, {
   create_time: (item, filter) => {
