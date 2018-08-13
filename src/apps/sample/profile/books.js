@@ -286,13 +286,6 @@ export default class TableList extends PureComponent {
       }, this);  
     }
 
-    const menu = (
-      <Menu onClick={e => this.handleMenuClick(null, e)} selectedKeys={[]}>
-        <Menu.Item key="role">设置角色</Menu.Item>
-        <Menu.Item key="approval">批量审批</Menu.Item>
-      </Menu>
-    );
-
     const dialogProps = {
       settings,
       dispatch: this.props.dispatch,
@@ -313,11 +306,6 @@ export default class TableList extends PureComponent {
               <span>
                 {books.selectedRows.length === 1 && <Button onClick={this.editBooks} loading={loading.effects['books/edit']}>编辑</Button>}
                 <Button onClick={() => this.deleteBooks()} loading={loading.effects['books/remove']}>删除</Button>
-                <Dropdown overlay={menu}>
-                  <Button>
-                    更多操作 <Icon type="down" />
-                  </Button>
-                </Dropdown>
               </span>
             )}
             {books.selectedRows && books.selectedRows.length > 0 && (
