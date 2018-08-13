@@ -45,7 +45,7 @@ export default class BooksDialog extends PureComponent {
 
   render() {
     const { modalVisible, form, settings, loading, values, handleModalVisible, isEdit } = this.props;
-    const tagPattern = "\\w";
+    const tagPattern = "^\\w+$";
 
     if (!this.submitHandler) {
       this.submitHandler = createSubmitHandler({
