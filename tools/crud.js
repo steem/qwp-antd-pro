@@ -69,9 +69,7 @@ function replaceMockServiceStubCode() {
 }
 function replaceRequestCode() {
   let code = getFileContent(path.join(crudPath, 'user_request.js'));
-  code = code.replace("system', 'user", argv.path.split('/').join("', '"));
-  code = code.replace(/user/g, objectName);
-  code = code.replace(/User/g, objectUpperCaseName);
+  code = code.replace("system', 'xxx", argv.path.split('/').join("', '"));
   fs.writeFileSync(path.join(requestsPath, modelName + '.js'), code);
 }
 function replaceMockServiceCode() {
