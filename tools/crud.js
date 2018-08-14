@@ -97,6 +97,10 @@ function main() {
   objectUpperCaseName = objectName.substr(0, 1).toUpperCase() + objectName.substr(1);
   moduleDir = path.dirname(modulePath);
   console.log('Module path: ' + modulePath);
+  if (!fs.existsSync(moduleDir)) {
+    console.log(chalk.yellow('Module dir: ' + moduleDir + ' does not exist, please create the dir manually!'));
+    return;
+  }
   if (isValidPath() === false) {
     console.log(chalk.yellow('Failed'));
     return;
@@ -115,6 +119,7 @@ function main() {
     path: objectName,
     models: objectName,
   });
+  console.log(chalk.green('After change router.js file, use "npm run router:x" to generate router, currently x must be php'));
 }
 
 main();
