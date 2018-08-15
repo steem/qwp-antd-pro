@@ -1,4 +1,4 @@
-const fs = require('fs');
+const fs = require('fs-extra');
 const path = require('path');
 const chalk = require('chalk');
 const util = require('util');
@@ -96,8 +96,8 @@ function main() {
   moduleDir = path.dirname(modulePath);
   console.log('Module path: ' + modulePath);
   if (!fs.existsSync(moduleDir)) {
-    console.log(chalk.yellow('Module dir: ' + moduleDir + ' does not exist, please create the dir manually!'));
-    return;
+    console.log(chalk.blue('Module dir: ' + moduleDir + ' does not exist, create now'));
+    fs.mkdirsSync(moduleDir);
   }
   if (isValidPath() === false) {
     console.log(chalk.yellow('Failed'));

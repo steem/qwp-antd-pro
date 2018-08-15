@@ -18,7 +18,7 @@ function createOps (mockTmpl, path = '/', L = {}, tables = {}, formRules = {}, f
     delete mockTmpl._key;
   }
   if (!mockTmpl[dataKey]) mockTmpl[dataKey]   = '@id';
-  let mockData = Mock.mock({'data|1000-3000': [mockTmpl]}).data;
+  let mockData = Mock.mock({'data|30-80': [mockTmpl]}).data;
 
   return {
     $: {
