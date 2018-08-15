@@ -32,11 +32,6 @@ const myOps = createOps({
     ],
   },
 }, {
-  user: {
-    id: { required: true, 'digits': true, op: 'edit', ui: false },
-    name: { required: true, rangelength: [1, 256], 'op_edit': 2 },
-    description: { rangelength: [1, 256] },
-  },
   search: {
     name: { rangelength: [1, 256] },
     description: { rangelength: [1, 256] },

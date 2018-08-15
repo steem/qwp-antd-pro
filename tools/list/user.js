@@ -6,59 +6,39 @@ import {
   Card,
   Form,
   Input,
-  Tag,
   Icon,
   Button,
   Dropdown,
   Menu,
   DatePicker,
   Alert,
-  Tooltip,
 } from 'antd';
-import _ from 'lodash';
 import StandardTable from 'components/StandardTable';
 import DropOption from 'components/DropOption';
 import { createSubmitHandlerForSearch, getFieldDecorator } from 'utils/form';
 import { showErrorMessage } from 'utils/utils';
 import { l } from 'utils/localization';
 import { createTableColumn, handleTableChange } from 'utils/table';
-import BooksDialog from './BooksDialog';
-import styles from './books.less';
+import styles from './user.less';
 
 const FormItem = Form.Item;
 const searchFormName = 'search';
 
-function createBookTags(r) {
-  if (!r.tags || r.tags.length === 0) return (<span>未设置</span>);
-  if (_.isString(r.tags)) r.tags = JSON.parse(r.tags);
-  return r.tags.map(item => {
-    const isLongTag = item.length > 10;
-    const props = {
-      color: 'magenta',
-    };
-    if (!isLongTag) props.key = item;
-    const tagElem = (<Tag {...props}>{isLongTag ? `${item.slice(0, 10)}...` : item}</Tag>);
-    return isLongTag ? <Tooltip title={item} key={item}>{tagElem}</Tooltip> : tagElem;
-  });
-}
-
-@connect(({ books, loading }) => ({
-  books,
+@connect(({ user, loading }) => ({
+  user,
   loading,
 }))
 @Form.create()
 export default class TableList extends PureComponent {
   state = {
-    modalVisible: false,
     expandForm: false,
     searchValues: {},
-    isEdit: false,
   };
 
   componentDidMount() {
     const { dispatch } = this.props;
     dispatch({
-      type: 'books/fetch',
+      type: 'user/fetch',
       payload: {},
     });
   }
@@ -67,7 +47,7 @@ export default class TableList extends PureComponent {
     const { dispatch } = this.props;
     const { searchValues } = this.state;
 
-    handleTableChange(dispatch, 'books/fetch', searchValues, pagination, filtersArg, sorter);
+    handleTableChange(dispatch, 'user/fetch', searchValues, pagination, filtersArg, sorter);
   };
 
   handleFormReset = () => {
@@ -77,7 +57,7 @@ export default class TableList extends PureComponent {
       searchValues: {},
     });
     dispatch({
-      type: 'books/fetch',
+      type: 'user/fetch',
       payload: {},
     });
   };
@@ -90,44 +70,9 @@ export default class TableList extends PureComponent {
     });
   };
 
-  handleMenuClick = (u, e) => {
-    if (!u) {
-      if (this.props.books.selectedRows.length !== 1) {
-        showErrorMessage(l('请选择一个用户'));
-        return;
-      }
-      u = this.props.books.selectedRows[0];
-    }
-
-    switch (e.key) {
-      case 'remove':
-        this.deleteBooks(u.id);
-        break;
-      case 'edit':
-        this.editBooks(u, true);
-        break;
-      default:
-        break;
-    }
-  };
-
-  deleteBooks = (ids) => {
-    if (!ids && !this.props.books.selectedRows.length) return;
-    this.props.dispatch({
-      type: 'books/remove',
-      payload: {
-        ids,
-      },
-    });
-  };
-
-  editBooks = (books, fromClick) => {
-    this.handleModalVisible(true, true, fromClick ? books : null);
-  };
-
   handleSelectRows = rows => {
     this.props.dispatch({
-      type: 'books/selectedBooks',
+      type: 'user/selectedUser',
       payload: {
         r: rows,
       },
@@ -136,7 +81,7 @@ export default class TableList extends PureComponent {
 
   clearSelectedRows = () => {
     this.props.dispatch({
-      type: 'books/selectedBooks',
+      type: 'user/selectedUser',
       payload: {
         r: [],
       },
@@ -153,21 +98,17 @@ export default class TableList extends PureComponent {
     const { dispatch } = this.props;
 
     dispatch({
-      type: 'books/fetch',
+      type: 'user/fetch',
       payload: fields,
     });
   };
 
-  handleModalVisible = (modalVisible, isEdit, books) => {
-    this.setState({
-      modalVisible: !!modalVisible,
-      isEdit: !!isEdit,
-      books,
-    });
-  };
+  handleMenuClick = (e) => {
+
+  }
 
   renderSimpleForm() {
-    const { form, books: { settings } } = this.props;
+    const { form, user: { settings } } = this.props;
 
     return (
       <Form onSubmit={this.searchSubmitHandler} layout="inline">
@@ -201,7 +142,7 @@ export default class TableList extends PureComponent {
   }
 
   renderAdvancedForm() {
-    const { form, books: { settings } } = this.props;
+    const { form, user: { settings } } = this.props;
 
     return (
       <Form onSubmit={this.searchSubmitHandler} layout="inline">
@@ -244,10 +185,10 @@ export default class TableList extends PureComponent {
   }
 
   render() {
-    const { books, loading } = this.props;
-    const { data, settings } = books;
+    const { user, loading } = this.props;
+    const { data, settings } = user;
 
-    if (!settings.tables.books) {
+    if (!settings.tables.user) {
       return null;
     }
 
@@ -260,57 +201,41 @@ export default class TableList extends PureComponent {
       })
     }
 
-    const { modalVisible } = this.state;
-
     if (!this.columns) {
-      this.columns = createTableColumn(settings.tables.books, {
+      this.columns = createTableColumn(settings.tables.user, {
         render: {
-          name (text, record, ui) {
-            return (<a title={l('Click to update books information')} onClick={() => ui.editBooks(record, true)}>{text}</a>);
-          },
-          tags (text, record) {
-            return createBookTags(record);
-          },
           operation (text, record, ui) {
-            return (
-              <DropOption 
-                onMenuClick={e => ui.handleMenuClick(record, e)}
-                menuOptions={[{ key: 'edit', name: l('Edit') }, { key: 'remove', name: l('Delete') }]}
-              />
-            )
+            return (<span>Test</span>)
           },
         },
-      }, this);  
+      }, this);
     }
 
-    const dialogProps = {
-      settings,
-      dispatch: this.props.dispatch,
-      handleModalVisible: this.handleModalVisible,
-      values: this.state.isEdit ? (this.state.books || this.props.books.selectedRows[0]) : {},
-      isEdit: this.state.isEdit,
-    };
+    const menu = (
+      <Menu onClick={e => this.handleMenuClick(e)} selectedKeys={[]}>
+        <Menu.Item key="role">设置角色</Menu.Item>
+        <Menu.Item key="approval">批量审批</Menu.Item>
+      </Menu>
+    );
 
     return (
       <Card bordered={false}>
         <div className={styles.tableList}>
           <div className={styles.tableListForm}>{this.renderForm()}</div>
           <div className={styles.tableListOperator}>
-            <Button icon="plus" type="primary" onClick={() => this.handleModalVisible(true)}>
-              新建
-            </Button>
-            {books.selectedRows && books.selectedRows.length > 0 && (
-              <span>
-                {books.selectedRows.length === 1 && <Button onClick={this.editBooks} loading={loading.effects['books/edit']}>编辑</Button>}
-                <Button onClick={() => this.deleteBooks()} loading={loading.effects['books/remove']}>删除</Button>
-              </span>
+            {user.selectedRows && user.selectedRows.length > 0 && (
+              <Dropdown overlay={menu}>
+                <Button>
+                  更多操作 <Icon type="down" />
+                </Button>
+              </Dropdown>
             )}
-            {books.selectedRows && books.selectedRows.length > 0 && (
+            {user.selectedRows && user.selectedRows.length > 0 && (
               <div style={{float: 'right'}}>
                 <Alert
                   message={
                     <Fragment>
-                      已选择 <a style={{ fontWeight: 600 }}>{books.selectedRows.length}</a> 项&nbsp;&nbsp;
+                      已选择 <a style={{ fontWeight: 600 }}>{user.selectedRows.length}</a> 项&nbsp;&nbsp;
                       <a onClick={this.clearSelectedRows} style={{ marginLeft: 24 }}>
                         清空
                       </a>
@@ -322,15 +247,14 @@ export default class TableList extends PureComponent {
             )}
           </div>
           <StandardTable
-            selectedRows={books.selectedRows}
-            loading={loading.effects['books/init'] || loading.effects['books/fetch']}
+            selectedRows={user.selectedRows}
+            loading={loading.effects['user/init'] || loading.effects['user/fetch']}
             data={data}
             columns={this.columns}
             onSelectRow={this.handleSelectRows}
             onChange={this.handleStandardTableChange}
           />
         </div>
-        {modalVisible && <BooksDialog ref={n => {this.dialog = n}} {...dialogProps} modalVisible={modalVisible} loading={loading.effects['books/create'] || loading.effects['books/edit']} />}
       </Card>
     );
   }

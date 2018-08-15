@@ -261,9 +261,6 @@ export default class TableList extends PureComponent {
             )
           },
         },
-        className: {
-          avatar: styles.avatar,
-        },
       }, this);
     }
 

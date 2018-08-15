@@ -23,7 +23,9 @@
     "router:php": "node ./tools/router.js --language=php",
     "router:java": "node ./tools/router.js --language=java",
     "crud": "node ./tools/crud.js",
-    "ops:php": "node ./tools/php/OpsGenerator.js",
+    "code:crud": "node ./tools/crud.js",
+    "code:list": "node ./tools/list.js",
+    "code:php": "node ./tools/php/OpsGenerator.js",
     "save-acls:php": "php ./tools/php/save_acls.php"
   },
   "dependencies": {

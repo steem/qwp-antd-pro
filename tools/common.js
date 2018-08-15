@@ -16,5 +16,6 @@ module.exports = {
   mockCorePath: path.join(projectBasePath, 'mock', 'core'),
   mockServicePath: path.join(projectBasePath, 'mock', 'core', 'services'),
   crudPath: path.join(__dirname, 'crud'),
+  listPath: path.join(__dirname, 'list'),
   getFileContent,
 }
