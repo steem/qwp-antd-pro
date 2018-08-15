@@ -8,7 +8,7 @@ import { getStorageData } from '../utils/storage';
 
 const { l } = localization;
 
-function* fetchBookss(call, put, payload, noNotice) {
+function* fetchBooks(call, put, payload, noNotice) {
   const response = yield call(booksService.list, payload || config.tablePagination);
   if (response && response.success) {
     yield put({
@@ -79,7 +79,7 @@ export default {
       });
       const params = _.payload || p;
       if (!params.pageSize) params.pageSize = config.tablePagination.pageSize;
-      call(fetchBookss, call, put, params);
+      yield call(fetchBooks, call, put, params);
     },
 
     *remove ({ payload }, { select, call, put }) {
@@ -95,7 +95,7 @@ export default {
       if (data) showOpsNotification(data, l('Delete bookss'), l('Bookss are deleted successfully'))
       if (data && data.success) {
         const p = yield select(s => s.books.data.pagination);
-        call(fetchBookss, call, put, p, true);
+        yield call(fetchBooks, call, put, p, true);
       }
     },
 
@@ -105,7 +105,7 @@ export default {
       if (data && data.success) {
         callback();
         const p = yield select(s => s.books.data.pagination);
-        call(fetchBookss, call, put, p, true);
+        yield call(fetchBooks, call, put, p, true);
       }
     },
 
@@ -115,7 +115,7 @@ export default {
       if (data && data.success) {
         callback();
         const p = yield select(s => s.books.data.pagination);
-        call(fetchBookss, call, put, p, true);
+        yield call(fetchBooks, call, put, p, true);
       }
     },
 

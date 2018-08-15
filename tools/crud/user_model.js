@@ -7,7 +7,7 @@ import * as userService from 'requests/user';
 
 const { l } = localization;
 
-function* fetchUsers(call, put, payload, noNotice) {
+function* fetchUser(call, put, payload, noNotice) {
   const response = yield call(userService.list, payload || config.tablePagination);
   if (response && response.success) {
     yield put({
@@ -78,7 +78,7 @@ export default {
       });
       const params = _.payload || p;
       if (!params.pageSize) params.pageSize = config.tablePagination.pageSize;
-      call(fetchUsers, call, put, params);
+      yield call(fetchUser, call, put, params);
     },
 
     *remove ({ payload }, { select, call, put }) {
@@ -94,7 +94,7 @@ export default {
       if (data) showOpsNotification(data, l('Delete user'), l('User are deleted successfully'))
       if (data && data.success) {
         const p = yield select(s => s.user.data.pagination);
-        call(fetchUsers, call, put, p, true);
+        yield call(fetchUser, call, put, p, true);
       }
     },
 
@@ -104,7 +104,7 @@ export default {
       if (data && data.success) {
         callback();
         const p = yield select(s => s.user.data.pagination);
-        call(fetchUsers, call, put, p, true);
+        yield call(fetchUser, call, put, p, true);
       }
     },
 
@@ -114,7 +114,7 @@ export default {
       if (data && data.success) {
         callback();
         const p = yield select(s => s.user.data.pagination);
-        call(fetchUsers, call, put, p, true);
+        yield call(fetchUser, call, put, p, true);
       }
     },
 

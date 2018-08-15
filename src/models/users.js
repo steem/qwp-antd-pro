@@ -94,7 +94,7 @@ export default {
       if (data) showOpsNotification(data, l('Delete users'), l('Users are deleted successfully'))
       if (data && data.success) {
         const p = yield select(s => s.users.data.pagination);
-        call(fetchUsers, call, put, p, true);
+        yield call(fetchUsers, call, put, p, true);
       }
     },
 
@@ -104,7 +104,7 @@ export default {
       if (data && data.success) {
         callback();
         const p = yield select(s => s.users.data.pagination);
-        call(fetchUsers, call, put, p, true);
+        yield call(fetchUsers, call, put, p, true);
       }
     },
 
@@ -114,7 +114,7 @@ export default {
       if (data && data.success) {
         callback();
         const p = yield select(s => s.users.data.pagination);
-        call(fetchUsers, call, put, p, true);
+        yield call(fetchUsers, call, put, p, true);
       }
     },
 
