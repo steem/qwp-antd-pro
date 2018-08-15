@@ -79,7 +79,7 @@ export default {
       });
       const params = _.payload || p;
       if (!params.pageSize) params.pageSize = config.tablePagination.pageSize;
-      yield call(fetchBookss, call, put, params);
+      call(fetchBookss, call, put, params);
     },
 
     *remove ({ payload }, { select, call, put }) {
@@ -95,7 +95,7 @@ export default {
       if (data) showOpsNotification(data, l('Delete bookss'), l('Bookss are deleted successfully'))
       if (data && data.success) {
         const p = yield select(s => s.books.data.pagination);
-        yield call(fetchBookss, call, put, p, true);
+        call(fetchBookss, call, put, p, true);
       }
     },
 
@@ -105,7 +105,7 @@ export default {
       if (data && data.success) {
         callback();
         const p = yield select(s => s.books.data.pagination);
-        yield call(fetchBookss, call, put, p, true);
+        call(fetchBookss, call, put, p, true);
       }
     },
 
@@ -115,7 +115,7 @@ export default {
       if (data && data.success) {
         callback();
         const p = yield select(s => s.books.data.pagination);
-        yield call(fetchBookss, call, put, p, true);
+        call(fetchBookss, call, put, p, true);
       }
     },
 

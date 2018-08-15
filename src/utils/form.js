@@ -253,7 +253,7 @@ function getDateTimeValue(o) {
 }
 
 function formalizedFormValues(values, formRules, formName) {
-  let rule = formRules && formName && formRules[formName] ? formRules[formName] : false;
+  const rule = formRules && formName && formRules[formName] ? formRules[formName] : false;
 
   for (const k in values) {
     if (values[k] && values[k].constructor) {

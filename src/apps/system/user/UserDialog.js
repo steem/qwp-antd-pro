@@ -66,7 +66,7 @@ export default class UserDialog extends PureComponent {
     }
   }
 
-  onOk = (err, fields, cb) => {
+  onOk = (err, fields, resetFields) => {
     if (err) {
       showErrorMessage(err);
       return;
@@ -78,7 +78,7 @@ export default class UserDialog extends PureComponent {
       type: `users/${this.props.isEdit ? 'edit' : 'create'}`,
       payload: fields,
       callback: () => {
-        cb();
+        resetFields();
         this.props.handleModalVisible(false);
       },
     });
