@@ -2,7 +2,7 @@ import React from 'react';
 import { Drawer } from 'antd';
 import { Scrollbars } from 'react-custom-scrollbars';
 import { sizer, elements } from 'utils/layout';
-import config from 'utils/config';
+import styles from 'utils/utils.less';
 
 function getMaxHeight(footerHeight) {
   return window.innerHeight - (76 + (footerHeight || 50));
@@ -42,7 +42,7 @@ export default class AutoScrollDrawer extends React.Component {
         {...props}
         width={drawerWidth}
       >
-        <Scrollbars autoHide {...scrollbarProps} style={scrollbarStyle} renderThumbVertical={elements.contentScrollbarThumb}>
+        <Scrollbars className={styles.scrollBar} autoHide {...scrollbarProps} style={scrollbarStyle} renderThumbVertical={elements.contentScrollbarThumb}>
           {children}
         </Scrollbars>
         {footer}

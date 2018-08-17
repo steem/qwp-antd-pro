@@ -3,6 +3,7 @@ import { Modal, Button, Icon } from 'antd';
 import { Scrollbars } from 'react-custom-scrollbars';
 import { sizer, elements } from 'utils/layout';
 import { l } from 'utils/localization';
+import styles from 'utils/utils.less';
 
 function isMax(v) {
   return v === 'max';
@@ -102,7 +103,7 @@ class AutoSizeDialog extends React.Component {
         closable={closable || false}
         footer={footer}
       >
-        <Scrollbars autoHide {...scrollbarProps} style={scrollbarStyle} renderThumbVertical={elements.contentScrollbarThumb}>
+        <Scrollbars className={styles.scrollBar} autoHide {...scrollbarProps} style={scrollbarStyle} renderThumbVertical={elements.contentScrollbarThumb}>
           {this.props.children}
         </Scrollbars>
       </Modal>

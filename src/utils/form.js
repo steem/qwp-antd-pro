@@ -236,7 +236,7 @@ export function createFieldRules (settings, formName, name, values, op) {
 }
 
 export function getFieldDecorator(form, settings, formName, name, values, op) {
-  const args = [name];
+  const args = [formName ? formName + '.' + name : name];
   const r = createFieldRules(settings, formName, name, values, op);
 
   if (!_.isUndefined(r.initialValue) || r.rules.length > 0) args.push(r);
@@ -307,6 +307,7 @@ export function createSubmitHandler ({form, onSubmit, activeFields, dataKey, bef
       e.preventDefault();
       const fields = _.isFunction(activeFields) ? activeFields() : activeFields;
       form.validateFieldsAndScroll(fields, { force: true }, (err, values) => {
+        if (formName && values[formName]) values = values[formName];
         formalizedFormValues(values, formRules, formName);
         if (beforeSubmit && beforeSubmit(values) === false) return;
         if (!dataKey) dataKey = 'f';
@@ -319,6 +320,7 @@ export function createSubmitHandler ({form, onSubmit, activeFields, dataKey, bef
   return (e) => {
     e.preventDefault();
     form.validateFieldsAndScroll((err, values) => {
+      if (formName && values[formName]) values = values[formName];
       formalizedFormValues(values, formRules, formName);
       if (beforeSubmit && beforeSubmit(values) === false) return;
       if (!dataKey) dataKey = 'f'

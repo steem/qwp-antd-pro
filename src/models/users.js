@@ -78,7 +78,7 @@ export default {
       });
       const params = _.payload || p;
       if (!params.pageSize) params.pageSize = config.tablePagination.pageSize;
-      call(fetchUsers, call, put, params);
+      yield call(fetchUsers, call, put, params);
     },
 
     *remove ({ payload }, { select, call, put }) {
