@@ -216,6 +216,15 @@ function fillInitialValue(r, itemType, values, name) {
     r.initialValue = moment(values[name], 'YYYY-MM-DD HH:mm');
   } else {
     r.initialValue = values[name];
+    // try to guess date range picker
+    if (_.isArray(r.initialValue) && r.initialValue.length === 2) {
+      const v1 = moment(r.initialValue[0]);
+      const v2 = moment(r.initialValue[1]);
+      if (v1.isValid() && v2.isValid()) {
+        r.initialValue[0] = v1;
+        r.initialValue[1] = v2;
+      }
+    }
   }
 }
 
@@ -298,6 +307,18 @@ function formalizedFormValues(values, formRules, formName) {
       }
     }
   }
+}
+
+export function submitForm ({form, onSubmit, dataKey, formRules, formName}) {
+  const resetFields = () => form.resetFields();
+  form.validateFieldsAndScroll((err, values) => {
+    if (formName && values[formName]) values = values[formName];
+    formalizedFormValues(values, formRules, formName);
+    if (!dataKey) dataKey = 'f';
+    onSubmit(err, {
+      [dataKey]: values,
+    }, resetFields)
+  });
 }
 
 export function createSubmitHandler ({form, onSubmit, activeFields, dataKey, beforeSubmit, formRules, formName}) {
