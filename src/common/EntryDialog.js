@@ -79,6 +79,10 @@ export default class EntryDialog extends PureComponent {
     }
   }
 
+  handleFormSubmit () {
+    
+  }
+
   render() {
     const { modalVisible, form, handleModalVisible } = this.props;
     const cardProps = {
@@ -139,6 +143,15 @@ export default class EntryDialog extends PureComponent {
         closable
         onCancel={() => handleModalVisible(false)}
       >
+        <div style={{ textAlign: 'center', marginBottom: 16 }}>
+          <Input.Search
+            placeholder="请输入"
+            enterButton="搜索"
+            size="large"
+            onSearch={this.handleFormSubmit}
+            style={{ width: 522 }}
+          />
+        </div>
         <CardsList {...cardProps} />
       </AutoSizeDialog>
     );
