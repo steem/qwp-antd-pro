@@ -19,6 +19,7 @@ import { sizer, elements } from 'utils/layout';
 import uri from 'utils/uri';
 import config from 'utils/config';
 import { l } from 'utils/localization';
+import EntryDialog from '../common/EntryDialog';
 import logo from '../assets/logo.svg';
 
 const { Content, Header, Footer } = Layout;
@@ -55,6 +56,7 @@ class AppLayout extends React.Component {
 
   state = {
     isMobile,
+    showEntryDialog: true,
     height: 100,
     layout: {},
   };
@@ -161,9 +163,18 @@ class AppLayout extends React.Component {
     }
   };
 
+  hideEntryDialog = visible => {
+    this.setState({
+      showEntryDialog: visible,
+    });
+  };
+
   handleIconClick = (e) => {
     const key = e.currentTarget.getAttribute('tag');
 
+    if (key === 'entry') {
+      this.hideEntryDialog(true);
+    }
   };
 
   render() {
@@ -178,6 +189,15 @@ class AppLayout extends React.Component {
       layout,
     } = this.state;
     const otherIcons = [];
+
+    if (main.user.isLogined) {
+      otherIcons.push({
+        title: '选择入口',
+        icon: 'appstore-o',
+        key: 'entry',
+        onClick: this.handleIconClick.bind(this),
+      });
+    }
     const routers = getRoutes(uri.rootComponent(), routerData);
     const pageContent = (
       <Layout>
@@ -247,6 +267,12 @@ class AppLayout extends React.Component {
                 />
               </Footer>)}
           </Scrollbars>
+          {main.inited && main.user.isLogined && this.state.showEntryDialog && (
+            <EntryDialog
+              modalVisible={this.state.showEntryDialog}
+              dispatch={this.props.dispatch}
+              handleModalVisible={this.hideEntryDialog}
+            />)}
         </Layout>
       </Layout>
     );
