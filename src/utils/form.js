@@ -217,7 +217,7 @@ function fillInitialValue(r, itemType, values, name) {
   } else {
     r.initialValue = values[name];
     // try to guess date range picker
-    if (_.isArray(r.initialValue) && r.initialValue.length === 2) {
+    if (_.isArray(r.initialValue) && r.initialValue.length === 2 && !isMomentObject(r.initialValue[0])) {
       const v1 = moment(r.initialValue[0]);
       const v2 = moment(r.initialValue[1]);
       if (v1.isValid() && v2.isValid()) {
