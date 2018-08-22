@@ -8,8 +8,109 @@
 require_once(DRUPAL_DB_ROOT . '/database.inc');
 
 global $QWP_ACTIVE_DB;
+
 if (isset($QWP_ACTIVE_DB)) {
     db_set_active($QWP_ACTIVE_DB);
+}
+function db_set_condition(&$query, &$conditions) {
+    foreach ($conditions as &$con) {
+        if ($con[0] === '$or') {
+            $obj = db_or();
+            db_set_condition($obj, $con[1]);
+            if (count($obj) > 0) $query->condition($obj);
+        } else {
+            $field = &$con[0];
+            $value = &$con[1];
+            $field_con = null;
+            if (count($con) === 3) $field_con = $con[2];
+            if (is_array($value)) {
+                if ($field_con == 'in') {
+                    $query->condition($field, $value, 'in');
+                } else if ($field_con == '[]') {
+                    $query->condition($field, $value[0], '>=');
+                    $query->condition($field, $value[1], '<=');
+                } else if ($field_con == '(]') {
+                    $query->condition($field, $value[0], '>');
+                    $query->condition($field, $value[1], '<=');
+                } else if ($field_con == '[)') {
+                    $query->condition($field, $value[0], '>=');
+                    $query->condition($field, $value[1], '<');
+                } else if ($field_con == '()') {
+                    $query->condition($field, $value[0], '>');
+                    $query->condition($field, $value[1], '<');
+                }
+            } else if ($field_con == 'like') {
+                if (strpos($value, '%') === false && strpos($value, '?') === false) {
+                    $value = '%' . $value . '%';
+                }
+                $query->condition($field, $value, $field_con);
+            } else if ($field_con == 'null') {
+                $query->isNull($field);
+            } else if ($field_con == 'not null') {
+                $query->isNotNull($field);
+            } else {
+                $query->condition($field, $value);
+            }
+        }
+    }
+}
+function db_parse_order_by(&$query, &$order_by) {
+    if (!$order_by) return;
+    if (is_string($order_by)) {
+        $query->orderBy($order_by);
+        return;
+    }
+    if (!is_array($order_by)) {
+        return;
+    }
+    if (is_string($order_by[0])) {
+        $query->orderBy($order_by[0], $order_by[1]);
+        return;
+    }
+    foreach($order_by as &$item) {
+        if (is_string($item)) {
+            $query->orderBy($item);
+        } else {
+            $query->orderBy($item[0], $item[1]);
+        }
+    }
+}
+function db_set_fields(&$query, &$table, &$fields) {
+    if (!$fields) return;
+    if ($fields === '*') {
+        $query->fields($table);
+    } else if (is_string($fields)) {
+        $query->fields($table, explode(',', $fields));
+    } else if (is_string($fields[0])) {
+        if (is_array($fields[1])) $query->fields($fields[0], $fields[1]);
+        else $query->fields($table, $fields);
+    } else if (is_array($fields)) {
+        foreach ($fields as &$item) {
+            $query->fields($item[0], $item[1]);
+        }
+    }
+}
+function db_select_ex($table, $conditions = array(), $fields = array(), $order_by = array()) {
+  if (is_string($table)) {
+    $query = db_select($table, $table);
+  } else {
+    $query = db_select($table[0], $table[1]);
+  }
+  db_set_condition($query, $conditions);
+  db_set_fields($query, $table, $fields);
+  db_parse_order_by($query, $order_by);
+
+  return $query->execute();
+}
+
+function db_result_count(&$ret) {
+  return $ret->rowCount();
+}
+
+function db_next_record(&$ret, &$r) {
+    $r = $ret->fetchAssoc();
+
+    return $r ? true : false;
 }
 function qwp_db_try_connect_db() {
     try {
@@ -393,18 +494,8 @@ function qwp_create_query(&$query, $table_name, &$fields, &$options = null) {
                 qwp_db_set_search_condition($query, $options['search condition']['values'], $field_conditions);
             }
         }
-        if (isset($options['order by'])) {
-            foreach($options['order by'] as &$order_by) {
-                if (is_string($order_by)) {
-                    $query->orderBy($order_by);
-                } else {
-                    if (count($order_by) == 2 && $order_by[1]) {
-                        $query->orderBy($order_by[0], $order_by[1]);
-                    } else {
-                        $query->orderBy($order_by[0]);
-                    }
-                }
-            }
+        if (isset($options['order by']) && $options['order by']) {
+            db_parse_order_by($query, $options['order by']);
         }
         if (isset($options['group by'])) {
             if(isset($options['group count'])){

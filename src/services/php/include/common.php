@@ -28,7 +28,7 @@ function is_json_content_type_request() {
 function is_post_request() {
     global $_SERVER;
 
-    return $_SERVER['REQUEST_METHOD'] === 'POST';
+    return isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'POST';
 }
 function initialize_request() {
     global $MODULE, $PAGE, $OP, $F, $S, $_POST;
@@ -862,9 +862,24 @@ function copy_from(&$target, $from) {
         $target[$k] = $v;
     }
 }
-function copy_from_ex(&$target, &$from) {
+function copy_from_ex(&$target, &$from, $unwanted = null, $unwanted_prefix = null) {
+    if ($unwanted || $unwanted_prefix) {
+        foreach ($from as $k => $v) {
+            if ($unwanted && isset($unwanted[$k])) continue;
+            if ($unwanted_prefix && starts_with($k, $unwanted_prefix)) continue;
+            $target[$k] = $v;
+        }
+    } else {
+        foreach ($from as $k => $v) {
+            $target[$k] = $v;
+        }
+    }
+}
+function copy_from_wanted(&$target, &$from, $wanted, $skip_empty = true) {
     foreach ($from as $k => $v) {
-        $target[$k] = $v;
+        if (isset($wanted[$k])) {
+            if ($skip_empty && !empty($v)) $target[$k] = $v;
+        }
     }
 }
 // string related functions

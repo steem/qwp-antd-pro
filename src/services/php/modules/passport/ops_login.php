@@ -2,17 +2,17 @@
 if(!defined('QWP_ROOT')){exit('Invalid Request');}
 
 function qwp_validate_login(&$msg, &$data) {
-    $ret = db_select('sys_user', 'u')->fields('u', array('id', 'name', 'role', 'create_time'))
-        ->condition('account', F('user'))
-        ->condition('pwd', md5(F('pwd')))
-        ->execute();
-    if ($ret->rowCount() !== 1) {
+    $ret = db_select_ex(array('sys_user', 'u'), array(
+        array('account', F('user')),
+        array('pwd', md5(F('pwd'))),
+    ), array('u', array('id', 'name', 'role', 'create_time')));
+    if (db_result_count($ret) !== 1) {
         $msg = L('Password is not correct');
         return false;
     }
-    $r = $ret->fetchAssoc();
+    db_next_record($ret, $r);
     $data['topTo'] = qwp_get_dst_url();
-    $user = new QWPUser(intval($r['id']), intval($r['role']),
+    $user = new QWPUser($r['id'], intval($r['role']),
         $r['name'], $r['name'], $r['name'], $r['create_time']);
     qwp_init_login($user);
     $data['loginType'] = P('type', '');

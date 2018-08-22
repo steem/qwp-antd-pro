@@ -10,12 +10,12 @@ if (P('u')) {
         readfile($avatar[2]);
     }
 } else {
-    $q = db_select('sys_user', 'u');
     $id = P('id');
-    $q->fields('u', array('avatar', 'avatar_type'))->condition('id', $id ? $id : $USER->uid);
-    $ret = $q->execute();
-    if ($ret->rowCount() > 0) {
-        $r = $ret->fetchAssoc();
+    $q = db_select_ex(array('sys_user', 'u'), array(
+        array('id', $id ? $id : $USER->uid),
+    ), array('u', array('avatar', 'avatar_type')));
+    if (db_result_count($ret) > 0) {
+        db_next_record($ret, $r);
         if ($r['avatar']) {
             set_content_type($r['avatar_type']);
             readfile($r['avatar']);

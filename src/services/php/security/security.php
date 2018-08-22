@@ -99,27 +99,37 @@ function qwp_get_user_acls(&$acls) {
     }
     global $USER;
 
-    $q = db_select('sys_modules', 'm');
-    $q->fields('m', array('name', 'path', 'icon', 'type', 'page'));
+    $conditions = array(
+        array('enabled', 'y'),
+    );
     if (qwp_is_guest_user()) {
-        $q->condition('public', 'y');
+        $conditions[] = array('public', 'y');
     } else if (!qwp_is_admin_user()) {
-        $module_ids = db_select('sys_role_modules', 'r')->fields('r', array('module_id'))->condition('role_id', $USER->role)->execute()->fetchAll();
+        $module_ids = db_select_ex(array('sys_role_modules', 'r'), array(array('role_id', $USER->role)), array('r', array('module_id')));
         $ids = array();
-        foreach ($module_ids as $id) {
-          $ids[] = $id->module_id;
+        while (db_next_record($module_ids, $r)) {
+          $ids[] = $r['module_id'];
         }
-        $q->condition(db_or()->condition('id', $ids, 'in')->condition('public', 'y'));
+        $conditions[] = array(
+            '$or', array(
+                array('id', $ids, 'in'),
+                array('public', 'y'),
+            )
+        );
     }
-    $q->condition('enabled', 'y')->orderBy('path', 'asc')->orderBy('seq', 'asc');
-    $ret = $q->execute();
+    $order_by = array(
+        array('path', 'asc'),
+        array('seq', 'asc'),
+    );
+    $ret = db_select_ex(array('sys_modules', 'm'), $conditions,
+        array('m', array('name', 'path', 'icon', 'type', 'page')), $order_by);
     $acls['modules'] = array();
     $acls['pages'] = array();
     $acls['ops'] = array();
     $modules = &$acls['modules'];
     $pages = &$acls['pages'];
     $ops = &$acls['ops'];
-    while (($r = $ret->fetchAssoc())) {
+    while (db_next_record($ret, $r)) {
         if ($r['type'] === 'm') {
             $modules[$r['path']] = array(
                 'name' => $r['name'],
