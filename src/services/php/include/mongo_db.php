@@ -113,8 +113,10 @@ function qwp_db_set_search_condition_internal(&$field_values, &$query, &$allow_e
         $op = $field_conditions["op"];
     }
     if ($op == "or") {
+        $is_or = true;
         $obj = array();
     } else {
+        $is_or = false;
         $obj = &$query;
     }
     if (isset($field_conditions["condition"])) {
@@ -133,24 +135,39 @@ function qwp_db_set_search_condition_internal(&$field_values, &$query, &$allow_e
                 continue;
             }
             $has_fields = true;
+            if ($is_or) $nc = array();
+            else $nc = &$query;
+            if ($field === 'id') {
+                $field = '_id';
+                if (is_string($value)) $value = explode(',', $value);
+                if (is_array($value) && count($value) > 1) {
+                    for ($i = 0, $cnt = count($value); $i < $cnt; ++$i) {
+                        $value[$i] = new MongoId($value[$i]);
+                    }
+                } else {
+                    $value = new MongoId($value[0]);
+                }
+            }
             if (is_array($value)) {
                 if ($field_con == 'in') {
-                    $query[$field] = array('$in' => $value);
+                    $nc[$field] = array('$in' => $value);
                 } else if ($field_con == '[]') {
-                    $query[$field] = array('$gte' => $value[0], '$lte' => $value[1]);
+                    $nc[$field] = array('$gte' => $value[0], '$lte' => $value[1]);
                 } else if ($field_con == '(]') {
-                    $query[$field] = array('$gt' => $value[0], '$lte' => $value[1]);
+                    $nc[$field] = array('$gt' => $value[0], '$lte' => $value[1]);
                 } else if ($field_con == '[)') {
-                    $query[$field] = array('$gte' => $value[0], '$lt' => $value[1]);
+                    $nc[$field] = array('$gte' => $value[0], '$lt' => $value[1]);
                 } else if ($field_con == '()') {
-                    $query[$field] = array('$gt' => $value[0], '$lt' => $value[1]);
+                    $nc[$field] = array('$gt' => $value[0], '$lt' => $value[1]);
                 }
             } else if ($field_con == 'like') {
-                $query[$field]['$regex'] = $value;
+                $nc[$field]['$regex'] = '.*' . $value . '.*';
             } else if ($field_con == 'null') {
-                $query[$field] = null;
+                $nc[$field] = null;
             } else if ($field_con == 'not null') {
-                $query[$field]['$ne'] = null;
+                $nc[$field]['$ne'] = null;
+            } else if ($field_con == '<>') {
+                $nc[$field]['$ne'] = $value;
             } else {
                 if (is_array($field_con) && isset($field_con[$value])) {
                     $fn_con = $field_con[$value];
@@ -167,18 +184,21 @@ function qwp_db_set_search_condition_internal(&$field_values, &$query, &$allow_e
                     $fn_con = $fn_con($value);
                 }
                 if ($fn_con === 'null') {
-                    $query[$field] = null;
+                    $nc[$field] = null;
                 } else if ($fn_con === 'not null') {
-                    $query[$field]['$ne'] = null;
+                    $nc[$field]['$ne'] = null;
+                } else if ($field_con == '<>') {
+                    $nc[$field]['$ne'] = $value;
                 } else if (is_string($field_con)) {
-                    $query[$field][$field_con] = $value;
+                    $nc[$field][$field_con] = $value;
                 } else {
-                    $query[$field] = $value;
+                    $nc[$field] = $value;
                 }
             }
+            if ($is_or) $obj[] = $nc;
         }
     }
-    if ($op == "or") {
+    if ($is_or) {
         if ($has_fields) {
             $query['$or'] = $obj;
         } else {
@@ -253,9 +273,6 @@ function qwp_create_query(&$query, $table_name, &$fields, &$options = null) {
         //         $query->innerJoin($join[0], $join[1], $join[2]);
         //     }
         // }
-        if (isset($options['where']) && is_array($options['where'])) {
-            $conditions = array_merge($conditions, $options['where']);
-        }
         if (isset($options['search condition'])) {
             if (isset($options['search condition']['values']) && count($options['search condition']['values']) > 0) {
                 $field_conditions = null;
@@ -265,8 +282,6 @@ function qwp_create_query(&$query, $table_name, &$fields, &$options = null) {
                 qwp_db_set_search_condition($conditions, $options['search condition']['values'], $field_conditions);
             }
         }
-    }
-    if (is_string($table_name)) {
         // if (isset($options['group by'])) {
         //     if(isset($options['group count'])){
         //         $query->addExpression("count(1)", $options['group count']);
@@ -276,15 +291,13 @@ function qwp_create_query(&$query, $table_name, &$fields, &$options = null) {
         //     }
         //     $query->groupBy($options['group by']);
         // }
-        $query = db_select($table_name, $conditions, $query_fields);
+    }
+    if ($table_name) {
+        $query = _mongo_select_ex($table_name, $conditions, $query_fields, isset($options['order by']) ? $options['order by'] : null);
     } else {
-        return;
+        return false;
     }
     if ($options) {
-        if (isset($options['order by']) && $options['order by']) {
-            db_parse_order_by($sort, $options['order by']);
-            if (count($sort) > 0) $query->sort($sort);
-        }
         if (isset($options['limits']) && $options['limits']) {
             if (is_array($options['limits'])) {
                 $query->skip($options['limits'][0]);
@@ -313,7 +326,7 @@ function qwp_db_set_pager(&$query, $total) {
     $total_page = ceil($total / $page_size);
     if ($page > $total_page && P('cpage', true)) $page = $total_page;
     $page_start = ($page - 1) * $page_size;
-    $query->skip($page_start);
+    if ($page_start) $query->skip($page_start);
     $query->limit($page_size);
     return $page;
 }
@@ -389,13 +402,13 @@ function qwp_db_retrieve_data($table_name, &$data, &$options)
         }
         if (isset($options['data converter'])) {
             $data_converter = $options['data converter'];
-            foreach ($query as &$r) {
+            foreach ($query as $r) {
                 _mongo_result_check_id($r);
                 $data_converter($r);
                 $data["data"][] = $r;
             }
         } else {
-            foreach ($query as &$r) {
+            foreach ($query as $r) {
                 _mongo_result_check_id($r);
                 $data["data"][] = $r;
             }
@@ -444,7 +457,7 @@ function qwp_db_get_data($table_name, &$data, $fields, &$options = null) {
                 }
             }
         } else {
-            foreach ($query as &$r) {
+            foreach ($query as $r) {
                 _mongo_result_check_id($r);
                 if ($is_flat) {
                     $data[] = $r[$fields];

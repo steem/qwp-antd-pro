@@ -489,7 +489,7 @@ function qwp_create_query(&$query, $table_name, &$fields, &$options = null) {
         $table_alias = $table_name[1];
         $query = db_select($table_name[0], $table_alias);
     } else {
-        return;
+        return false;
     }
     qwp_db_set_fields($query, $table_alias, $fields, $options);
     if ($options) {
