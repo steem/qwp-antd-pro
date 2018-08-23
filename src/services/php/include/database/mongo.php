@@ -52,13 +52,17 @@ function db_result_count(&$ret) {
   return $ret->count(true);
 }
 
-function db_next_record(&$ret, &$r) {
-    if (!$ret->hasNext()) return false;
-    $r = $ret->next();
+function _mongo_result_check_id(&$r) {
     if (isset($r['_id'])) {
         $r['id'] = (string)$r['_id'];
         unset($r['_id']);
     }
+}
+
+function db_next_record(&$ret, &$r) {
+    if (!$ret || !$ret->hasNext()) return false;
+    $r = $ret->next();
+    _mongo_result_check_id($r);
 
     return true;
 }
@@ -68,8 +72,8 @@ function db_get_version() {
 }
 
 function db_parse_order_by(&$sort, &$order_by) {
-    if (!$order_by) return;
     $sort = array();
+    if (!$order_by) return;
     if (is_string($order_by)) {
         $sort[$order_by] = 1;
         return;
@@ -89,8 +93,28 @@ function db_parse_order_by(&$sort, &$order_by) {
         }
     }
 }
+function db_set_inc(&$incs, &$ori) {
+    $incs = array();
+    if (!$ori) return;
+    if (is_string($ori)) {
+        $tmp = explode(',', $fields);
+        foreach ($tmp as &$k) {
+            if (!$k) continue;
+            $incs[$k] = 1;
+        }
+        return;
+    }
+    foreach ($ori as $key => &$item) {
+        if (is_int($key)) {
+            $incs[$key] = 1;
+        } else {
+            $incs[$key] = $item;
+        }
+    }
+}
 function db_set_fields(&$query_fields, &$fields) {
     $query_fields = array();
+    if (!$fields) return;
     if (!$fields || $fields === '*') return;
     if (is_string($fields)) {
         $tmp = explode(',', $fields);
@@ -105,45 +129,55 @@ function db_set_fields(&$query_fields, &$fields) {
         }
     }
 }
+function db_add_condition(&$conditions, &$con) {
+    $field = &$con[0];
+    $value = &$con[1];
+    if ($field === 'id') {
+        $conditions['_id'] = new MongoId($value);
+        return;
+    }
+    $field_con = null;
+    if (count($con) === 3) $field_con = $con[2];
+    if (is_array($value)) {
+        if ($field_con == 'in') {
+            $conditions[$field] = array('$in' => $value);
+        } else if ($field_con == '[]') {
+            $conditions[$field] = array('$gte' => $value[0], '$lte' => $value[1]);
+        } else if ($field_con == '(]') {
+            $conditions[$field] = array('$gt' => $value[0], '$lte' => $value[1]);
+        } else if ($field_con == '[)') {
+            $conditions[$field] = array('$gte' => $value[0], '$lt' => $value[1]);
+        } else if ($field_con == '()') {
+            $conditions[$field] = array('$gt' => $value[0], '$lt' => $value[1]);
+        }
+    } else if ($field_con == 'like') {
+        $conditions[$field]['$regex'] = $value;
+    } else if ($field_con == 'null') {
+        $conditions[$field] = null;
+    } else if ($field_con == 'not null') {
+        $conditions[$field]['$ne'] = null;
+    } else {
+        $conditions[$field] = $value;
+    }
+}
 function db_set_condition(&$conditions, &$cons) {
     $conditions = array();
     if (count($cons) === 0) return;
+    if (is_string($cons[0])) {
+        db_add_condition($conditions, $cons);
+        return;
+    }
     foreach ($cons as &$item) {
         if ($item[0] === '$or') {
             db_set_condition($obj, $item[1]);
             if (count($obj) > 0) $conditions['$or'] = $obj;
         } else {
-            $field = &$item[0];
-            if ($field === 'id') $field = '_id';
-            $value = &$item[1];
-            $field_con = null;
-            if (count($item) === 3) $field_con = $item[2];
-            if (is_array($value)) {
-                if ($field_con == 'in') {
-                    $conditions[$field] = array('$in' => $value);
-                } else if ($field_con == '[]') {
-                    $conditions[$field] = array('$gte' => $value[0], '$lte' => $value[1]);
-                } else if ($field_con == '(]') {
-                    $conditions[$field] = array('$gt' => $value[0], '$lte' => $value[1]);
-                } else if ($field_con == '[)') {
-                    $conditions[$field] = array('$gte' => $value[0], '$lt' => $value[1]);
-                } else if ($field_con == '()') {
-                    $conditions[$field] = array('$gt' => $value[0], '$lt' => $value[1]);
-                }
-            } else if ($field_con == 'like') {
-                $conditions[$field]['$regex'] = $value;
-            } else if ($field_con == 'null') {
-                $conditions[$field] = null;
-            } else if ($field_con == 'not null') {
-                $conditions[$field]['$ne'] = null;
-            } else {
-                $conditions[$field] = $value;
-            }
+            db_add_condition($conditions, $item);
         }
     }
 }
 
-function db_select($table_name, $condition = array(), $fields = array(), $order_by = array()) {
+function db_select_ex($table_name, $condition = null, $fields = null, $order_by = null) {
     global $mongo_active_database;
 
     if (is_array($table_name)) $table_name = $table_name[0];
@@ -156,37 +190,22 @@ function db_select($table_name, $condition = array(), $fields = array(), $order_
     return $cursor;
 }
 
-function db_select_ex($table_name, $condition = array(), $fields = array(), $order_by = array()) {
+function db_select_one($table_name, $condition = null, $fields = null) {
     global $mongo_active_database;
 
     if (is_array($table_name)) $table_name = $table_name[0];
     db_set_condition($cons, $condition);
     db_set_fields($query_fields, $fields);
-    $cursor = db_get_db_connection()->selectCollection($mongo_active_database, $table_name)->find($cons, $query_fields);
-    db_parse_order_by($sort, $order_by);
-    if (count($sort) > 0) $cursor->sort($sort);
+    $r = db_get_db_connection()->selectCollection($mongo_active_database, $table_name)->findOne($cons, $query_fields);
 
-    return $cursor;
+    if ($r) {
+        _mongo_result_check_id($r);
+        return $r;
+    }
+    return false;
 }
 
-function db_select_and_modify($table_name, $condition = array(), $updates) {
-    global $mongo_active_database;
-
-    if (is_array($table_name)) $table_name = $table_name[0];
-    db_set_condition($cons, $condition);
-    return db_get_db_connection()->selectCollection($mongo_active_database, $table_name)->findAndModify($cons, $updates);
-}
-
-function db_select_one($table_name, $condition = array(), $fields = array()) {
-    global $mongo_active_database;
-
-    if (is_array($table_name)) $table_name = $table_name[0];
-    db_set_condition($cons, $condition);
-    db_set_fields($query_fields, $fields);
-    return db_get_db_connection()->selectCollection($mongo_active_database, $table_name)->findOne($cons, $query_fields);
-}
-
-function db_delete($table_name, $condition = array()) {
+function db_delete_ex($table_name, $condition = null) {
     global $mongo_active_database;
 
     if (is_array($table_name)) $table_name = $table_name[0];
@@ -194,12 +213,27 @@ function db_delete($table_name, $condition = array()) {
     return db_get_db_connection()->selectCollection($mongo_active_database, $table_name)->remove($cons);
 }
 
-function db_insert($table_name, $doc) {
+function db_insert_ex($table_name, &$doc) {
     global $mongo_active_database;
 
     return db_get_db_connection()->selectCollection($mongo_active_database, $table_name)->insert($doc);
 }
+function db_update_ex($table_name, &$doc, $condition = null, $incs = null) {
+    global $mongo_active_database;
 
+    db_set_condition($cons, $condition);
+    $new_data = array('$set' => &$doc);
+    db_set_inc($tmp_inc, $incs);
+    if (count($tmp_inc) > 0) {
+        $new_data['$inc'] = $tmp_inc;
+    }
+    $options = array(
+        'multiple' => true,
+    );
+    $ret = db_get_db_connection()->selectCollection($mongo_active_database, $table_name)->update($cons, $new_data, $options);
+    if (!$ret || !$ret['ok']) return false;
+    return $ret['nModified'];
+}
 function db_batch_insert($table_name, $docs) {
     global $mongo_active_database;
 

@@ -10,7 +10,7 @@ function add_book(&$msg, &$data) {
     $DUP_RECORD_MSG = 'Book name is same, please use another name';
     $F['create_time'] = time();
     $F['tags'] = isset($F['tags']) && $F['tags'] ? to_json($F['tags']) : '';
-    db_insert('tb_books')->fields($F)->execute();
+    db_insert_ex('tb_books', $F);
 }
 qwp_set_ops_process('add_book', true);
 qwp_set_form_validator('book');

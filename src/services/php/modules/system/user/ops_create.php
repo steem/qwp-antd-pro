@@ -13,7 +13,7 @@ function add_user(&$msg, &$data) {
     $F['create_time'] = time();
     if (isset($F['pwd']) && $F['pwd']) $F['pwd'] = md5($F['pwd']);
     else $F['pwd'] = md5(create_password());
-    db_insert('sys_user')->fields($F)->execute();
+    db_insert_ex('sys_user', $F);
     $msg = L('Create a new user successfully');
 }
 qwp_set_ops_process('add_user', true);

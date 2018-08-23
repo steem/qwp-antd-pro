@@ -20,23 +20,18 @@ function qwp_db_try_connect_db() {
         db_remove_active();
     }
 }
-function qwp_db_has_record($table_name, $conditions = array()) {
+function qwp_db_has_record($table_name, $conditions = null) {
     $cursor = db_select($table_name, $conditions);
 
     return $cursor->hasNext();
 }
-function qwp_db_records_count($table_name, $conditions = array()) {
+function qwp_db_records_count($table_name, $conditions = null) {
     $cursor = db_select($table_name, $conditions);
 
     return $cursor->count();
 }
-function qwp_db_get_one_record($table_name, $fields, $conditions) {
-    $cursor = db_select($table_name, $conditions, $fields);
-    $cursor->limit(1);
-    if ($cursor->hasNext()) {
-        return $cursor->next();
-    }
-    return null;
+function qwp_db_get_one_record($table_name, $fields = null, $conditions = null) {
+    return db_select_one($table_name, $conditions, $fields);
 }
 function qwp_db_get_fields_from_modal(&$modal, &$fields) {
     $fields = array();
@@ -395,19 +390,13 @@ function qwp_db_retrieve_data($table_name, &$data, &$options)
         if (isset($options['data converter'])) {
             $data_converter = $options['data converter'];
             foreach ($query as &$r) {
-                if (isset($r['_id'])) {
-                    $r['id'] = (string)$r['_id'];
-                    unset($r['_id']);
-                }
+                _mongo_result_check_id($r);
                 $data_converter($r);
                 $data["data"][] = $r;
             }
         } else {
             foreach ($query as &$r) {
-                if (isset($r['_id'])) {
-                    $r['id'] = (string)$r['_id'];
-                    unset($r['_id']);
-                }
+                _mongo_result_check_id($r);
                 $data["data"][] = $r;
             }
         }
@@ -446,10 +435,7 @@ function qwp_db_get_data($table_name, &$data, $fields, &$options = null) {
         if (isset($options['data converter'])) {
             $data_converter = $options['data converter'];
             foreach ($query as $r) {
-                if (isset($r['_id'])) {
-                    $r['id'] = (string)$r['_id'];
-                    unset($r['_id']);
-                }
+                _mongo_result_check_id($r);
                 $data_converter($r);
                 if ($is_flat) {
                     $data[] = $r[$fields];
@@ -459,10 +445,7 @@ function qwp_db_get_data($table_name, &$data, $fields, &$options = null) {
             }
         } else {
             foreach ($query as &$r) {
-                if (isset($r['_id'])) {
-                    $r['id'] = (string)$r['_id'];
-                    unset($r['_id']);
-                }
+                _mongo_result_check_id($r);
                 if ($is_flat) {
                     $data[] = $r[$fields];
                 } else {

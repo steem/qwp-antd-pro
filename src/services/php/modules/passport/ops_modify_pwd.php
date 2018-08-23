@@ -3,10 +3,13 @@ if(!defined('QWP_ROOT')){exit('Invalid Request');}
 
 function modify_pwd(&$msg, &$data) {
     if (!qwp_is_logined()) return false;
-    db_update('sys_user')->fields(array(
+    $f = array(
         'pwd' => md5(F('pwd')),
-    ))->condition('id', qwp_get_logined_user_id())
-        ->condition('pwd', md5(F('old_pwd')))->execute();
+    );
+    db_update_ex('sys_user', $f, array(
+        array('id', qwp_get_logined_user_id()),
+        array('pwd', md5(F('old_pwd')))
+    ));
     $msg = L('Modify password successfully');
 }
 qwp_set_ops_process('modify_pwd');

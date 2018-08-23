@@ -15,7 +15,7 @@ function edit_user(&$msg, &$data) {
     if (isset($F['pwd']) && !$F['pwd']) unset($F['pwd']);
     else $F['pwd'] = md5($F['pwd']);
     if (isset($F['account'])) unset($F['account']);
-    db_update('sys_user')->fields($F)->condition('id', $id)->execute();
+    db_update_ex('sys_user', $F, array('id', $id));
     $msg = L('Save user info successfully');
 }
 qwp_set_ops_process('edit_user', true);

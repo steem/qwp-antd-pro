@@ -8,7 +8,7 @@ function delete_user(&$msg, &$data) {
     if (!get_joined_digits($F, $ids)) {
         return false;
     }
-    db_delete('sys_user')->condition('id', $ids, 'in')->execute();
+    db_delete_ex('sys_user', array('id', $ids, 'in'));
     $msg = L('Delete selected users successfully');
 }
 define('IN_MODULE', 1);

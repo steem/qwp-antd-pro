@@ -12,7 +12,7 @@ function edit_book(&$msg, &$data) {
         return false;
     }
     $F['tags'] = isset($F['tags']) && $F['tags'] ? to_json($F['tags']) : '';
-    db_update('tb_books')->fields($F)->condition('id', $id)->execute();
+    db_update_ex('tb_books', $F, array('id', $id));
 }
 qwp_set_ops_process('edit_book', true);
 qwp_set_form_validator('book', 'edit');

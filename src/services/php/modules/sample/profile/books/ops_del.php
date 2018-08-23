@@ -7,7 +7,7 @@ function delete_books(&$msg, &$data) {
     if (!get_joined_digits($F, $ids)) {
         return false;
     }
-    db_delete('tb_books')->condition('id', $ids, 'in')->execute();
+    db_delete_ex('tb_books', array('id', $ids, 'in'));
 }
 define('IN_MODULE', 1);
 qwp_set_ops_process('delete_books');

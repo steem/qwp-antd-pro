@@ -12,45 +12,71 @@ global $QWP_ACTIVE_DB;
 if (isset($QWP_ACTIVE_DB)) {
     db_set_active($QWP_ACTIVE_DB);
 }
+function db_add_condition(&$query, &$con) {
+    $field = &$con[0];
+    $value = &$con[1];
+    $field_con = null;
+    if (count($con) === 3) $field_con = $con[2];
+    if (is_array($value)) {
+        if ($field_con == 'in') {
+            $query->condition($field, $value, 'in');
+        } else if ($field_con == '[]') {
+            $query->condition($field, $value[0], '>=');
+            $query->condition($field, $value[1], '<=');
+        } else if ($field_con == '(]') {
+            $query->condition($field, $value[0], '>');
+            $query->condition($field, $value[1], '<=');
+        } else if ($field_con == '[)') {
+            $query->condition($field, $value[0], '>=');
+            $query->condition($field, $value[1], '<');
+        } else if ($field_con == '()') {
+            $query->condition($field, $value[0], '>');
+            $query->condition($field, $value[1], '<');
+        }
+    } else if ($field_con == 'like') {
+        if (strpos($value, '%') === false && strpos($value, '?') === false) {
+            $value = '%' . $value . '%';
+        }
+        $query->condition($field, $value, $field_con);
+    } else if ($field_con == 'null') {
+        $query->isNull($field);
+    } else if ($field_con == 'not null') {
+        $query->isNotNull($field);
+    } else {
+        $query->condition($field, $value);
+    }
+}
+function db_set_inc(&$query, &$ori) {
+    if (!$ori) return;
+    if (is_string($ori)) {
+        $tmp = explode(',', $fields);
+        foreach ($tmp as &$k) {
+            if (!$k) continue;
+            $query->expression($k, $k . '+1');
+        }
+        return;
+    }
+    foreach ($ori as $key => &$item) {
+        if (is_int($k)) {
+            $query->expression($k, $k . '+1');
+        } else {
+            $query->expression($k, $k . '+:amount', array(':amount' => $item));
+        }
+    }
+}
 function db_set_condition(&$query, &$conditions) {
+    if (count($conditions) === 0) return;
+    if (is_string($conditions[0])) {
+        db_add_condition($query, $conditions);
+        return;
+    }
     foreach ($conditions as &$con) {
         if ($con[0] === '$or') {
             $obj = db_or();
             db_set_condition($obj, $con[1]);
             if (count($obj) > 0) $query->condition($obj);
         } else {
-            $field = &$con[0];
-            $value = &$con[1];
-            $field_con = null;
-            if (count($con) === 3) $field_con = $con[2];
-            if (is_array($value)) {
-                if ($field_con == 'in') {
-                    $query->condition($field, $value, 'in');
-                } else if ($field_con == '[]') {
-                    $query->condition($field, $value[0], '>=');
-                    $query->condition($field, $value[1], '<=');
-                } else if ($field_con == '(]') {
-                    $query->condition($field, $value[0], '>');
-                    $query->condition($field, $value[1], '<=');
-                } else if ($field_con == '[)') {
-                    $query->condition($field, $value[0], '>=');
-                    $query->condition($field, $value[1], '<');
-                } else if ($field_con == '()') {
-                    $query->condition($field, $value[0], '>');
-                    $query->condition($field, $value[1], '<');
-                }
-            } else if ($field_con == 'like') {
-                if (strpos($value, '%') === false && strpos($value, '?') === false) {
-                    $value = '%' . $value . '%';
-                }
-                $query->condition($field, $value, $field_con);
-            } else if ($field_con == 'null') {
-                $query->isNull($field);
-            } else if ($field_con == 'not null') {
-                $query->isNotNull($field);
-            } else {
-                $query->condition($field, $value);
-            }
+            db_add_condition($query, $con);
         }
     }
 }
@@ -76,8 +102,7 @@ function db_parse_order_by(&$query, &$order_by) {
     }
 }
 function db_set_fields(&$query, &$table, &$fields) {
-    if (!$fields) return;
-    if ($fields === '*') {
+    if (!$fields || $fields === '*') {
         $query->fields($table);
     } else if (is_string($fields)) {
         $query->fields($table, explode(',', $fields));
@@ -90,7 +115,7 @@ function db_set_fields(&$query, &$table, &$fields) {
         }
     }
 }
-function db_select_ex($table, $conditions = array(), $fields = array(), $order_by = array()) {
+function db_select_ex($table, $conditions = null, $fields = null, $order_by = null) {
   if (is_string($table)) {
     $query = db_select($table, $table);
   } else {
@@ -111,6 +136,21 @@ function db_next_record(&$ret, &$r) {
     $r = $ret->fetchAssoc();
 
     return $r ? true : false;
+}
+function db_insert_ex($table, &$f) {
+    return db_insert($table)->fields($f)->execute();
+}
+function db_update_ex($table, &$f, $conditions = null, $incs = null) {
+    $query = db_update($table)->fields($f);
+    db_set_condition($query, $conditions);
+    db_set_inc($query, $incs);
+    return $query->execute();
+}
+function db_delete_ex($table, &$f, $conditions = null) {
+    $query = db_delete($table);
+    db_set_condition($query, $conditions);
+
+    return $query->execute();
 }
 function qwp_db_try_connect_db() {
     try {
@@ -162,16 +202,9 @@ function qwp_db_has_record($table_name, $where = null, $conditions = null) {
     }
     return false;
 }
-function qwp_db_records_count($table_name, $where = null, $conditions = null) {
+function qwp_db_records_count($table_name, $conditions = null) {
     $query = db_select($table_name, 't');
-    if ($where) {
-        $query->where($where);
-    }
-    if ($conditions) {
-        foreach ($conditions as $con) {
-            $query->condition($con[0], $con[1], isset($con[2]) ? $con[2] : null);
-        }
-    }
+    db_set_condition($query, $conditions);
     $query->addExpression("count(1)", "n");
     $result = $query->execute();
     if ($result && $result->rowCount() > 0) {
@@ -180,16 +213,10 @@ function qwp_db_records_count($table_name, $where = null, $conditions = null) {
     }
     return 0;
 }
-function qwp_db_get_one_record($table_name, $fields, $conditions, $where = null) {
-    $query = db_select($table_name, 't')->fields('t', $fields);
-    if ($conditions) {
-        foreach ($conditions as $con) {
-            $query->condition($con[0], $con[1], isset($con[2]) ? $con[2] : null);
-        }
-    }
-    if ($where) {
-        $query->where($where);
-    }
+function qwp_db_get_one_record($table_name, $fields = null, $conditions = null) {
+    $query = db_select($table_name);
+    db_set_fields($query, $table_name, $fields);
+    db_set_condition($query, $conditions);
     $result = $query->execute();
     return $result->rowCount() === 0 ? false : $result->fetchAssoc();
 }
