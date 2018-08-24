@@ -51,6 +51,8 @@ export default class BooksDialog extends PureComponent {
       this.submitHandler = createSubmitHandler({
         form,
         onSubmit: this.onOk.bind(this),
+        formName,
+        formRules: settings.formRules,
       })
     }
     return (

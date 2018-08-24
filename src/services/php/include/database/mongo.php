@@ -1,4 +1,15 @@
 <?php
+class MongoTransaction {
+    function __destruct() {
+
+    }
+    function rollback() {
+
+    }
+}
+function db_transaction() {
+    return new MongoTransaction();
+}
 function db_create_connection($key) {
     global $databases, $mongos;
 

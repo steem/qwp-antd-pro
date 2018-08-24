@@ -10,6 +10,7 @@ function add_user(&$msg, &$data) {
         $F['avatar_type'] = $F['avatar'][3];
         $F['avatar'] = $F['avatar'][2];
     }
+    $F['editable'] = 'y';
     $F['create_time'] = time();
     if (isset($F['pwd']) && $F['pwd']) $F['pwd'] = md5($F['pwd']);
     else $F['pwd'] = md5(create_password());

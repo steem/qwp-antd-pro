@@ -99,6 +99,8 @@ export default class UserDialog extends PureComponent {
         form,
         onSubmit: this.onOk.bind(this),
         beforeSubmit: this.beforeSubmit.bind(this),
+        formName,
+        formRules: settings.formRules,
       })
     }
 
