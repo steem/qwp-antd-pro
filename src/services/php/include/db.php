@@ -75,6 +75,8 @@ function db_set_condition(&$query, &$conditions) {
             $obj = db_or();
             db_set_condition($obj, $con[1]);
             if (count($obj) > 0) $query->condition($obj);
+        } else if ($con[0] === '$where') {
+            $query->where($con[1]);
         } else {
             db_add_condition($query, $con);
         }
@@ -87,10 +89,6 @@ function db_parse_order_by(&$query, &$order_by) {
         return;
     }
     if (!is_array($order_by)) {
-        return;
-    }
-    if (is_string($order_by[0])) {
-        $query->orderBy($order_by[0], $order_by[1]);
         return;
     }
     foreach($order_by as &$item) {

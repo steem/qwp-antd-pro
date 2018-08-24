@@ -81,10 +81,6 @@ function db_parse_order_by(&$sort, &$order_by) {
     if (!is_array($order_by)) {
         return;
     }
-    if (is_string($order_by[0])) {
-        $sort[$order_by[0]] = $order_by[1] === 'desc' ? -1 : 1;
-        return;
-    }
     foreach($order_by as &$item) {
         if (is_string($item)) {
             $sort[$item] = 1;
@@ -173,6 +169,14 @@ function db_add_condition(&$conditions, &$con, $or = false) {
         $c[$field]['$ne'] = null;
     } else if ($field_con == '<>') {
         $c[$field]['$ne'] = $value;
+    } else if ($field_con == '>=') {
+        $c[$field]['$gte'] = $value;
+    } else if ($field_con == '>') {
+        $c[$field]['$gte'] = $value;
+    } else if ($field_con == '<=') {
+        $c[$field]['$lte'] = $value;
+    } else if ($field_con == '<') {
+        $c[$field]['$lt'] = $value;
     } else {
         $c[$field] = $value;
     }
@@ -189,6 +193,9 @@ function db_set_condition(&$conditions, &$cons, $or = false) {
         if ($item[0] === '$or') {
             db_set_condition($obj, $item[1], true);
             if (count($obj) > 0) $conditions['$or'] = $obj;
+        } else if ($item[0] === '$where') {
+            if ($or) $conditions[] = array('$where' => $item[1]);
+            else $conditions['$where'] = $item[1];
         } else {
             db_add_condition($conditions, $item, $or);
         }

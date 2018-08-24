@@ -6,39 +6,35 @@ function set_avatar_condition(&$v) {
 }
 function convert_search_data(&$s) {
     if (isset($s['name'])) {
-        $s['u.name'] = $s['name'];
-        unset($s['name']);
+        $s['account'] = $s['name'];
     }
     if (isset($s['create_time'])) {
         $s['create_time'] = date_to_int($s['create_time']);
     }
 }
 function convert_user(&$r) {
-    $r['create_time'] = get_datetime_string($r['create_time']);
+    if (isset($r['create_time'])) $r['create_time'] = get_datetime_string($r['create_time']);
 }
 function list_users(&$msg, &$data) {
+    global $S;
+
     get_user_data_modal($user_modal);
     $user_id = P('id');
     $options = array(
         'data modal' => $user_modal,
-        'left join' => array(
-            array('sys_role', 'r', 'r.id=u.role'),
-        ),
-        'where' => 'u.id<>1 and u.role<>1',
         'data converter' => 'convert_user',
     );
+    $S['editable'] = 'y';
     if ($user_id) {
         $data = array();
-        if ($user_id != '1' && is_digits($user_id)) {
-            $options['where'] .= ' and u.id=' . $user_id;
-            qwp_db_get_data(array('sys_user', 'u'), $data, null, $options);
-        }
+        $S['id'] = $user_id;
+        qwp_db_get_data(array('sys_user', 'u'), $data, null, $options);
     } else {
         $options['default order'] = array('role', array('id', 'desc'));
         $options['search condition'] = array(
             'condition' => array(
                 'fields' => array(
-                    'u.name' => 'like',
+                    'name' => 'like',
                     'avatar' => 'set_avatar_condition',
                     'gender' => array('s' => array('<>', 'x')),
                     'create_time' => '>=',

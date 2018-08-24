@@ -13,7 +13,7 @@ function qwp_validate_login(&$msg, &$data) {
     db_next_record($ret, $r);
     $data['topTo'] = qwp_get_dst_url();
     $user = new QWPUser($r['id'], intval($r['role']),
-        $r['name'], $r['name'], $r['name'], $r['create_time']);
+        $r['name'], $r['name'], $r['name'], isset($r['create_time']) ? $r['create_time'] : 0);
     qwp_init_login($user);
     $data['loginType'] = P('type', '');
     $msg = L('Login successfully');

@@ -13,5 +13,8 @@ $form_rule = array(
         'create_time' => array(
             'date' => true,
         ),
+        'name' => array(
+            'rangelength' => [1, 64],
+        ),
     ),
 );

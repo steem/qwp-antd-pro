@@ -275,7 +275,7 @@ export default class TableList extends PureComponent {
         render: {
           name (text, record, ui) {
             return (
-              <RandomAvatar text={record.nick_name.substr(0, 1)}>
+              <RandomAvatar text={record.nick_name ? record.nick_name.substr(0, 1) : 'U'}>
                 <a title={l('Click to update user information')} onClick={() => ui.editUser(record, true)}>{text}</a>
               </RandomAvatar>
             );

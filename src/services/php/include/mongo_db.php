@@ -107,6 +107,74 @@ function qwp_db_get_table_header_from_modal(&$modal, &$header) {
     }
     if (count($groups) > 0) $header['group'] = $groups;
 }
+function _mongo_qwp_add_condition(&$field, &$value, &$field_con, &$nc) {
+    if ($field === 'id') {
+        $field = '_id';
+        if (is_string($value)) $value = explode(',', $value);
+        if (is_array($value) && count($value) > 1) {
+            for ($i = 0, $cnt = count($value); $i < $cnt; ++$i) {
+                $value[$i] = new MongoId($value[$i]);
+            }
+        } else {
+            $value = new MongoId($value[0]);
+        }
+    }
+    if (is_array($value)) {
+        if ($field_con == 'in') {
+            $nc[$field] = array('$in' => $value);
+        } else if ($field_con == '[]') {
+            $nc[$field] = array('$gte' => $value[0], '$lte' => $value[1]);
+        } else if ($field_con == '(]') {
+            $nc[$field] = array('$gt' => $value[0], '$lte' => $value[1]);
+        } else if ($field_con == '[)') {
+            $nc[$field] = array('$gte' => $value[0], '$lt' => $value[1]);
+        } else if ($field_con == '()') {
+            $nc[$field] = array('$gt' => $value[0], '$lt' => $value[1]);
+        }
+    } else if ($field_con == 'like') {
+        $nc[$field]['$regex'] = '.*' . $value . '.*';
+    } else if ($field_con == 'null') {
+        $nc[$field] = null;
+    } else if ($field_con == 'not null') {
+        $nc[$field]['$ne'] = null;
+    } else if ($field_con == '<>') {
+        $nc[$field]['$ne'] = $value;
+    } else if ($field_con == '>=') {
+        $nc[$field]['$gte'] = $value;
+    } else if ($field_con == '>') {
+        $nc[$field]['$gte'] = $value;
+    } else if ($field_con == '<=') {
+        $nc[$field]['$lte'] = $value;
+    } else if ($field_con == '<') {
+        $nc[$field]['$lt'] = $value;
+    } else {
+        if (is_array($field_con) && isset($field_con[$value])) {
+            $fn_con = $field_con[$value];
+            if (is_array($fn_con) && !isset($fn_con['where'])) {
+                $value = $fn_con[1];
+                $fn_con = $fn_con[0];
+            }
+        } else if (is_string($field_con) && function_exists($field_con)) {
+            $fn_con = $field_con;
+        } else {
+            $fn_con = null;
+        }
+        if ($fn_con && is_string($fn_con) && function_exists($fn_con)) {
+            $fn_con = $fn_con($value);
+        }
+        if ($fn_con === 'null') {
+            $nc[$field] = null;
+        } else if ($fn_con === 'not null') {
+            $nc[$field]['$ne'] = null;
+        } else if ($field_con == '<>') {
+            $nc[$field]['$ne'] = $value;
+        } else if (is_string($field_con)) {
+            $nc[$field][$field_con] = $value;
+        } else {
+            $nc[$field] = $value;
+        }
+    }
+}
 function qwp_db_set_search_condition_internal(&$field_values, &$query, &$allow_empty, &$field_conditions) {
     $op = "and";
     if (isset($field_conditions["op"])) {
@@ -137,64 +205,7 @@ function qwp_db_set_search_condition_internal(&$field_values, &$query, &$allow_e
             $has_fields = true;
             if ($is_or) $nc = array();
             else $nc = &$query;
-            if ($field === 'id') {
-                $field = '_id';
-                if (is_string($value)) $value = explode(',', $value);
-                if (is_array($value) && count($value) > 1) {
-                    for ($i = 0, $cnt = count($value); $i < $cnt; ++$i) {
-                        $value[$i] = new MongoId($value[$i]);
-                    }
-                } else {
-                    $value = new MongoId($value[0]);
-                }
-            }
-            if (is_array($value)) {
-                if ($field_con == 'in') {
-                    $nc[$field] = array('$in' => $value);
-                } else if ($field_con == '[]') {
-                    $nc[$field] = array('$gte' => $value[0], '$lte' => $value[1]);
-                } else if ($field_con == '(]') {
-                    $nc[$field] = array('$gt' => $value[0], '$lte' => $value[1]);
-                } else if ($field_con == '[)') {
-                    $nc[$field] = array('$gte' => $value[0], '$lt' => $value[1]);
-                } else if ($field_con == '()') {
-                    $nc[$field] = array('$gt' => $value[0], '$lt' => $value[1]);
-                }
-            } else if ($field_con == 'like') {
-                $nc[$field]['$regex'] = '.*' . $value . '.*';
-            } else if ($field_con == 'null') {
-                $nc[$field] = null;
-            } else if ($field_con == 'not null') {
-                $nc[$field]['$ne'] = null;
-            } else if ($field_con == '<>') {
-                $nc[$field]['$ne'] = $value;
-            } else {
-                if (is_array($field_con) && isset($field_con[$value])) {
-                    $fn_con = $field_con[$value];
-                    if (is_array($fn_con) && !isset($fn_con['where'])) {
-                        $value = $fn_con[1];
-                        $fn_con = $fn_con[0];
-                    }
-                } else if (is_string($field_con) && function_exists($field_con)) {
-                    $fn_con = $field_con;
-                } else {
-                    $fn_con = null;
-                }
-                if ($fn_con && is_string($fn_con) && function_exists($fn_con)) {
-                    $fn_con = $fn_con($value);
-                }
-                if ($fn_con === 'null') {
-                    $nc[$field] = null;
-                } else if ($fn_con === 'not null') {
-                    $nc[$field]['$ne'] = null;
-                } else if ($field_con == '<>') {
-                    $nc[$field]['$ne'] = $value;
-                } else if (is_string($field_con)) {
-                    $nc[$field][$field_con] = $value;
-                } else {
-                    $nc[$field] = $value;
-                }
-            }
+            _mongo_qwp_add_condition($field, $value, $field_con, $nc);
             if ($is_or) $obj[] = $nc;
         }
     }
@@ -221,7 +232,8 @@ function qwp_db_set_search_condition(&$query, &$field_values, &$field_conditions
         if (is_array($value)) {
             $query[$field] = array('$gte' => $value[0], '$lte' => $value[1]);
         } else {
-            $query[$field] = $value;
+            $field_con = null;
+            _mongo_qwp_add_condition($field, $value, $field_con, $query);
         }
     }
 }
@@ -281,6 +293,9 @@ function qwp_create_query(&$query, $table_name, &$fields, &$options = null) {
                 }
                 qwp_db_set_search_condition($conditions, $options['search condition']['values'], $field_conditions);
             }
+        }
+        if (isset($options['where']) && $options['where']) {
+            $conditions['$where'] = $options['where'];
         }
         // if (isset($options['group by'])) {
         //     if(isset($options['group count'])){

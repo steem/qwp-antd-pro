@@ -7,7 +7,6 @@
  */
 if(!defined('QWP_ROOT')){exit('Invalid Request');}
 try {
-    session_start();
     require_once(QWP_ROUTER_ROOT . '/required.php');
     do {
         initialize_request();
@@ -19,6 +18,7 @@ try {
             exit('Invalid Request');
             break;
         }
+        session_start();
         qwp_initialize_language();
         if (qwp_is_global_app_settings_request()) {
             break;
