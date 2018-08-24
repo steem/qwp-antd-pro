@@ -144,6 +144,7 @@ CREATE TABLE `sys_user` (
   `nick_name` varchar(128) DEFAULT NULL,
   `avatar` text,
   `avatar_type` varchar(128) DEFAULT NULL,
+  `editable` ENUM('y', 'n') NULL DEFAULT 'y',
   PRIMARY KEY (`id`),
   UNIQUE KEY `Index_account_unique` (`account`) USING BTREE,
   KEY `Index_pwd` (`pwd`),
@@ -158,7 +159,8 @@ CREATE TABLE `sys_user` (
   KEY `Index_last_heartbit_time` (`last_heartbit_time`),
   KEY `Index_level` (`level`),
   KEY `Index_parent` (`parent`),
-  KEY `Index_nick_name` (`nick_name`)
+  KEY `Index_nick_name` (`nick_name`),
+  KEY `Index_editable` (`editable`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -168,7 +170,7 @@ CREATE TABLE `sys_user` (
 
 LOCK TABLES `sys_user` WRITE;
 /*!40000 ALTER TABLE `sys_user` DISABLE KEYS */;
-INSERT INTO `sys_user` VALUES (1,'admin','7946e795e44db67be4c74219def41e2e',1,NULL,1361171257,1421893162,'Admin','ok','n',0,NULL,'y',1421893162,'','1','0',NULL,NULL,'u',NULL,NULL,NULL);
+INSERT INTO `sys_user` VALUES (1,'admin','7946e795e44db67be4c74219def41e2e',1,NULL,1361171257,1421893162,'Admin','ok','n',0,NULL,'y',1421893162,'','1','0',NULL,NULL,'u',NULL,NULL,NULL,'n');
 /*!40000 ALTER TABLE `sys_user` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
