@@ -209,6 +209,8 @@ function qwp_validate_form_item(&$f, &$validator, &$field_value, &$validator_val
         return datetime_to_int($field_value[0]. ':00') && datetime_to_int($field_value[1]. ':00') ? true : false;
     } else if ($validator == 'digits') {
         return is_digits($field_value);
+    } else if ($validator == 'length') {
+        return mb_strlen($field_value, 'utf8') === $validator_value;
     } else if ($validator == 'minlength') {
         return mb_strlen($field_value, 'utf8') >= $validator_value;
     } else if ($validator == 'maxlength') {

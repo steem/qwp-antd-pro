@@ -45,6 +45,8 @@ function applySettings(settings, passport, put) {
     importFormRules(passport);
     mergeFormRules(settings, passport);
     if (passport.lang) localization.set(passport.lang, put);
+  } else {
+    passport = {};
   }
   let user = false;
   if (passport.user) user = passport.user;
@@ -165,10 +167,10 @@ export default {
       initSettings(settings, put);
       const passportRes = yield call(rqPassport.$, payload);
       oldState = yield select(_ => _.main);
-      newState = applySettings(settings, passportRes.success ? passportRes.data : null, put);
+      newState = applySettings(settings, passportRes ? passportRes.data : null, put);
       if (settings.enableHeaderNav) newState.hasHeader = true;
       newState.inited = true;
-      newState.failed = !passportRes.success;
+      newState.failed = !passportRes || !passportRes.success;
       newState.topComponent = uri.rootComponent();
       if (!newState.user) newState.user = oldState.user;
       yield put({

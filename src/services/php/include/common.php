@@ -1366,6 +1366,20 @@ function is_ipv6($v) {
     }
     return preg_match("/" . $statement . "/", $v);
 }
+function is_base64($v) {
+    static $statement;
+    if (!isset($statement)) {
+        get_validators($statement, 'base64');
+    }
+    return preg_match("/" . $statement . "/", $v);
+}
+function is_hex($v) {
+    static $statement;
+    if (!isset($statement)) {
+        get_validators($statement, 'hex');
+    }
+    return preg_match("/" . $statement . "/", $v);
+}
 function create_password() {
     $s = random_string();
     return substr($s, 0, 3) . "Ebc" . substr($s, 3, 3);

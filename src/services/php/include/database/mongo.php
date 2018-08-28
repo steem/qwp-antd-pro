@@ -119,7 +119,7 @@ function db_set_inc(&$incs, &$ori) {
         }
     }
 }
-function db_set_fields(&$query_fields, &$fields) {
+function db_set_fields(&$query_fields, &$fields, $top = true) {
     $query_fields = array();
     if (!$fields) return;
     if (!$fields || $fields === '*') return;
@@ -137,8 +137,16 @@ function db_set_fields(&$query_fields, &$fields) {
     } else {
         // compatibility for sql
         foreach ($fields as $table_alias => $field) {
-            db_set_fields($query_fields, $field);
+            db_set_fields($query_fields, $field, false);
             break;
+        }
+    }
+    if ($top) {
+        // _id is returned by default
+        if (isset($query_fields['id'])) {
+            unset($query_fields['id']);
+        } else {
+            $query_fields['_id'] = 0;
         }
     }
 }
@@ -258,13 +266,19 @@ function db_delete_ex($table_name, $condition = null) {
 
     if (is_array($table_name)) $table_name = $table_name[0];
     db_set_condition($cons, $condition);
-    return db_get_db_connection()->selectCollection($mongo_active_database, $table_name)->remove($cons);
+    $ret = db_get_db_connection()->selectCollection($mongo_active_database, $table_name)->remove($cons);
+    if (!$ret || !$ret['ok']) return false;
+    return $ret['n'];
 }
 
 function db_insert_ex($table_name, &$doc) {
     global $mongo_active_database;
 
-    return db_get_db_connection()->selectCollection($mongo_active_database, $table_name)->insert($doc);
+    $id = new MongoId();
+    $doc['_id'] = $id;
+    $ret = db_get_db_connection()->selectCollection($mongo_active_database, $table_name)->insert($doc);
+    if (!$ret || !$ret['ok']) return false;
+    return (string)$id;
 }
 function db_update_ex($table_name, &$doc, $condition = null, $incs = null) {
     global $mongo_active_database;

@@ -30,7 +30,7 @@ function list_users(&$msg, &$data) {
         $S['id'] = $user_id;
         qwp_db_get_data(array('sys_user', 'u'), $data, null, $options);
     } else {
-        $options['default order'] = array('role', array('id', 'desc'));
+        $options['default order'] = array('role', array('create_time', 'desc'));
         $options['search condition'] = array(
             'condition' => array(
                 'fields' => array(

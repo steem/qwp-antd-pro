@@ -15,16 +15,6 @@ function import_date_range_time(){
     qwp_include_js_file('daterangepicker.js');
     qwp_include_css_file('bootstrap-daterangepicker.css');
 }
-function qwp_render_add_im() {
-    qwp_add_js_code(QWP_UI_ROOT . '/loading.js');
-    qwp_add_js_code(QWP_UI_ROOT . '/im.js');
-}
-function get_supported_target_sites_array(&$arr) {
-    $arr = array(
-        '100' => array(L('Telegram'), 'telegram.png'),
-        '101' => array(L('WhatsAPP'), 'whatsapp.png'),
-    );
-}
 function get_notification_count()
 {
     return 10;

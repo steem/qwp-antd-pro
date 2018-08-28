@@ -236,7 +236,7 @@ class AppLayout extends React.Component {
           </Header>)}
           <Scrollbars autoHide style={{ width: 'auto', height: this.state.height }} renderThumbVertical={elements.contentScrollbarThumb} id="content-scroll">
             <Content style={{ margin: layout.noMargin ? '0' : '24px 24px 0' }}>
-              { main.inited && (
+              { main.inited && !main.failed && (
                 <Switch>
                   {main.redirect.map(item => (
                     <Redirect key={item.from} exact from={item.from} to={item.to} />

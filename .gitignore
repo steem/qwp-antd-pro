@@ -24,3 +24,4 @@ jsconfig.json
 
 # visual studio code 
 .history
+*.zip
