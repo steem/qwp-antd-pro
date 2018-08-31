@@ -2309,6 +2309,10 @@ class DatabaseStatementEmpty implements Iterator, DatabaseStatementInterface {
   }
 }
 
+function db_select_database($name) {
+    db_query('use ' . $name);
+}
+
 /**
  * The following utility functions are simply convenience wrappers.
  *

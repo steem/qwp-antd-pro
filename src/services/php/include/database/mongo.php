@@ -10,10 +10,10 @@ class MongoTransaction {
 function db_transaction() {
     return new MongoTransaction();
 }
-function db_create_connection($key) {
-    global $databases, $mongos;
+function _mongo_db_create_connection() {
+    global $databases, $mongos, $mongo_active_key, $mongo_target_key;
 
-    $connection_options = $databases['default'][$key];
+    $connection_options = &$databases[$mongo_active_key][$mongo_target_key];
     $mogo_options = array();
     $dsn = 'mongodb://' . $connection_options['host'] . ':' . (empty($connection_options['port']) ? 27017 : $connection_options['port']);
     copy_from_wanted($mogo_options, $connection_options, array(
@@ -23,37 +23,54 @@ function db_create_connection($key) {
         'username' => 1,
         'password' => 1,
     ));
-    if (isset($connection_options['database']) && $connection_options['database']) {
-        $mogo_options['db'] = $connection_options['database'];
-    }
-    $mongos[$key] = new MongoClient($dsn, $mogo_options);
+    $mogo_options['db'] = 'admin';
+    $mongos[$mongo_active_key][$mongo_target_key] = new MongoClient($dsn, $mogo_options);
 }
 
-function db_get_db_connection($key = null) {
-    global $mongos, $mogo_active_key;
+function _mongo_db_get_connection() {
+    global $mongos, $mongo_active_key, $mongo_target_key, $mongo_active_database;
 
-    if (!$key) $key = $mogo_active_key;
-    if (!$key) {
-        $key = 'default';
-        db_set_active($key);
+    if (!isset($mongo_active_key)) {
+        db_set_active();
     }
     if (!isset($mongos)) $mongos = array();
-    if (!isset($mongos[$key])) db_create_connection($key);
+    if (!isset($mongos[$mongo_active_key]) || !isset($mongos[$mongo_active_key][$mongo_target_key])) {
+        _mongo_db_create_connection();
+        if (!isset($mongo_active_database)) {
+            $mongo_active_database = $databases[$mongo_target_key][$mongo_target_key]['database'];
+        }
+    }
 
-    return $mongos[$key];
+    return $mongos[$mongo_active_key][$mongo_target_key]->selectDB($mongo_active_database);
 }
 
-function db_set_active($key) {
-    global $mogo_active_key, $mongo_active_database, $databases;
+function db_set_active($key = null) {
+    global $mongo_active_key, $mongo_target_key, $mongo_active_database;
 
-    $mogo_active_key = $key;
-    $mongo_active_database = $databases['default'][$key]['database'];
+    if (isset($mongo_active_key) && $key === $mongo_active_key) return;
+
+    if ($key) {
+        $mongo_active_key = $key;
+        $mongo_target_key = 'default';
+    } else {
+        $mongo_active_key = 'default';
+        $mongo_target_key = 'default';
+    }
+}
+
+function db_select_database($name) {
+    global $mongo_active_database;
+
+    $mongo_active_database = $name;
 }
 
 function db_remove_active($key = null) {
-    global $mongos, $mogo_active_key;
+    global $mongos, $mongo_active_key;
 
-    if (!$key) $mogo_active_key = $key;
+    if (!$key) {
+        if (!isset($mongo_active_key)) return;
+        $key = $mongo_active_key;
+    }
     if (isset($mongos[$key]) && $mongos[$key]) {
         unset($mongos[$key]);
     }
@@ -79,7 +96,9 @@ function db_next_record(&$ret, &$r) {
 }
 
 function db_get_version() {
-    return db_get_db_connection()->selectDB('admin')->command('function () { return db.version(); }');
+    $mongodb_info = _mongo_db_get_connection()->command(array('buildinfo'=>true));
+
+    return $mongodb_info['version'];
 }
 
 function db_parse_order_by(&$sort, &$order_by) {
@@ -222,10 +241,8 @@ function db_set_condition(&$conditions, &$cons, $or = false) {
 }
 
 function _mongo_select_ex($table_name, $condition, $fields, $order_by = null) {
-    global $mongo_active_database;
-
     if (is_array($table_name)) $table_name = $table_name[0];
-    $cursor = db_get_db_connection()->selectCollection($mongo_active_database, $table_name)->find($condition, $fields);
+    $cursor = _mongo_db_get_connection()->selectCollection($table_name)->find($condition, $fields);
     if (!$cursor) return false;
     db_parse_order_by($sort, $order_by);
     if (count($sort) > 0) $cursor->sort($sort);
@@ -234,12 +251,10 @@ function _mongo_select_ex($table_name, $condition, $fields, $order_by = null) {
 }
 
 function db_select_ex($table_name, $condition = null, $fields = null, $order_by = null) {
-    global $mongo_active_database;
-
     if (is_array($table_name)) $table_name = $table_name[0];
     db_set_condition($cons, $condition);
     db_set_fields($query_fields, $fields);
-    $cursor = db_get_db_connection()->selectCollection($mongo_active_database, $table_name)->find($cons, $query_fields);
+    $cursor = _mongo_db_get_connection()->selectCollection($table_name)->find($cons, $query_fields);
     if (!$cursor) return false;
     db_parse_order_by($sort, $order_by);
     if (count($sort) > 0) $cursor->sort($sort);
@@ -248,12 +263,10 @@ function db_select_ex($table_name, $condition = null, $fields = null, $order_by 
 }
 
 function db_select_one($table_name, $condition = null, $fields = null) {
-    global $mongo_active_database;
-
     if (is_array($table_name)) $table_name = $table_name[0];
     db_set_condition($cons, $condition);
     db_set_fields($query_fields, $fields);
-    $r = db_get_db_connection()->selectCollection($mongo_active_database, $table_name)->findOne($cons, $query_fields);
+    $r = _mongo_db_get_connection()->selectCollection($table_name)->findOne($cons, $query_fields);
     if ($r) {
         _mongo_result_check_id($r);
         return $r;
@@ -262,27 +275,21 @@ function db_select_one($table_name, $condition = null, $fields = null) {
 }
 
 function db_delete_ex($table_name, $condition = null) {
-    global $mongo_active_database;
-
     if (is_array($table_name)) $table_name = $table_name[0];
     db_set_condition($cons, $condition);
-    $ret = db_get_db_connection()->selectCollection($mongo_active_database, $table_name)->remove($cons);
+    $ret = _mongo_db_get_connection()->selectCollection($table_name)->remove($cons);
     if (!$ret || !$ret['ok']) return false;
     return $ret['n'];
 }
 
 function db_insert_ex($table_name, &$doc) {
-    global $mongo_active_database;
-
     $id = new MongoId();
     $doc['_id'] = $id;
-    $ret = db_get_db_connection()->selectCollection($mongo_active_database, $table_name)->insert($doc);
+    $ret = _mongo_db_get_connection()->selectCollection($table_name)->insert($doc);
     if (!$ret || !$ret['ok']) return false;
     return (string)$id;
 }
 function db_update_ex($table_name, &$doc, $condition = null, $incs = null) {
-    global $mongo_active_database;
-
     db_set_condition($cons, $condition);
     $new_data = array('$set' => &$doc);
     db_set_inc($tmp_inc, $incs);
@@ -292,14 +299,12 @@ function db_update_ex($table_name, &$doc, $condition = null, $incs = null) {
     $options = array(
         'multiple' => true,
     );
-    $ret = db_get_db_connection()->selectCollection($mongo_active_database, $table_name)->update($cons, $new_data, $options);
+    $ret = _mongo_db_get_connection()->selectCollection($table_name)->update($cons, $new_data, $options);
     if (!$ret || !$ret['ok']) return false;
     return $ret['nModified'];
 }
 function db_batch_insert($table_name, $docs) {
-    global $mongo_active_database;
-
-    $batch = new MongoInsertBatch(db_get_db_connection()->selectCollection($mongo_active_database, $table_name));
+    $batch = new MongoInsertBatch(_mongo_db_get_connection()->selectCollection($table_name));
     foreach($docs as $doc) {
         $batch->add($doc);
     }
