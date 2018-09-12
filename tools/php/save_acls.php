@@ -13,7 +13,7 @@ function save_acls_to_db($clear = false) {
     get_predefined_acls($modules);
     get_predefined_ops($ops);
     if ($clear) {
-        db_delete('sys_modules')->execute();
+        db_delete_ex('sys_modules');
         db_query('ALTER TABLE sys_modules AUTO_INCREMENT=1');
     }
     foreach ($modules as $path => $item) {
@@ -27,7 +27,7 @@ function save_acls_to_db($clear = false) {
             'seq' => '1',
             'public' => $item['public'] ? 'y' : 'n',
         );
-        $id = db_insert('sys_modules')->fields($f)->execute();
+        $id = db_insert_ex('sys_modules', $f);
     }
     foreach ($ops as $path => $items) {
         foreach ($items as $name => $item) {
@@ -41,7 +41,7 @@ function save_acls_to_db($clear = false) {
                 'type' => 'op',
                 'public' => $item['public'] ? 'y' : 'n',
             );
-            $id = db_insert('sys_modules')->fields($f)->execute();
+            $id = db_insert_ex('sys_modules', $f);
         }
     }
     echo_line('Finished');

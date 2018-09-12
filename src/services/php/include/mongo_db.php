@@ -5,7 +5,7 @@
  * Copyright (c) 2015 Steem
  * Released under the MIT license
  */
-require_once(DRUPAL_DB_ROOT . '/mongo.php');
+require_once(QWP_DB_ROOT . '/mongo.php');
 
 global $QWP_ACTIVE_DB;
 $QWP_ACTIVE_DB = "mongo";

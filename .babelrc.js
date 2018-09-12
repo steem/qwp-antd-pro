@@ -11,6 +11,7 @@ module.exports = {
           layouts: path.resolve(__dirname, 'src/layouts'),
           models: path.resolve(__dirname, 'src/models'),
           requests: path.join(__dirname, './src/requests'),
+          common: path.resolve(__dirname, 'src/common'),
           assets: path.resolve(__dirname, 'src/assets'),
         },
       },

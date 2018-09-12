@@ -1,4 +1,4 @@
-export default {
+module.exports = {
 '/sample': {name: 'sample', icon: 'bars'},
 '/sample/dashboard': {name: 'dashboard', icon: 'dashboard'},
 '/sample/exception': {name: 'exception', icon: 'warning'},

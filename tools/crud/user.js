@@ -95,14 +95,18 @@ export default class TableList extends PureComponent {
     }
   };
 
-  deleteUser = (ids) => {
-    if (!ids && !this.props.user.selectedRows.length) return;
+  opsByIds = (ids, op) => {
+    if (!ids && !this.props.tasks.selectedRows.length) return;
     this.props.dispatch({
-      type: 'user/remove',
+      type: `tasks/${op}`,
       payload: {
         ids,
       },
     });
+  }
+
+  deleteUser = (ids) => {
+    this.opsByIds(ids, 'remove');
   };
 
   editUser = (user, fromClick) => {
@@ -142,9 +146,9 @@ export default class TableList extends PureComponent {
     });
   };
 
-  handleModalVisible = (modalVisible, isEdit, user) => {
+  handleModalVisible = (visible, isEdit, user) => {
     this.setState({
-      modalVisible: !!modalVisible,
+      modalVisible: !!visible,
       isEdit: !!isEdit,
       user,
     });
@@ -278,6 +282,7 @@ export default class TableList extends PureComponent {
       values: this.state.isEdit ? (this.state.user || this.props.user.selectedRows[0]) : {},
       isEdit: this.state.isEdit,
     };
+    const isSelected = user.selectedRows && user.selectedRows.length > 0;
 
     return (
       <Card bordered={false}>
@@ -287,7 +292,7 @@ export default class TableList extends PureComponent {
             <Button icon="plus" type="primary" onClick={() => this.handleModalVisible(true)}>
               新建
             </Button>
-            {user.selectedRows && user.selectedRows.length > 0 && (
+            {isSelected && (
               <span>
                 {user.selectedRows.length === 1 && <Button onClick={this.editUser} loading={loading.effects['user/edit']}>编辑</Button>}
                 <Button onClick={() => this.deleteUser()} loading={loading.effects['user/remove']}>删除</Button>
@@ -298,7 +303,7 @@ export default class TableList extends PureComponent {
                 </Dropdown>
               </span>
             )}
-            {user.selectedRows && user.selectedRows.length > 0 && (
+            {isSelected && (
               <div style={{float: 'right'}}>
                 <Alert
                   message={

@@ -22,7 +22,7 @@ define('QWP_UI_ROOT', QWP_ROOT . '/ui');
 define('QWP_TEMPLATE_ROOT', QWP_ROOT . '/template');
 define('QWP_LANG_ROOT', QWP_ROOT . '/lang');
 define('QWP_SHOW_INVALID_FORM_VALUE', true);
-define('DRUPAL_DB_ROOT', QWP_INC_ROOT . '/database');
+define('QWP_DB_ROOT', QWP_INC_ROOT . '/database');
 define('QWP_OPS_RET', 'success');
 define('QWP_OPS_MSG', 'message');
 define('QWP_OPS_MSG_TYPE', 'type');

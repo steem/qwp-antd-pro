@@ -4,6 +4,15 @@ import _ from 'lodash'
 import { l } from './localization';
 import config from './config';
 
+export function parseJson(json, d) {
+  if (!json) return d;
+  try {
+    return JSON.parse(json);
+  } catch (e) {
+    return d;
+  }
+}
+
 export function fixedZero(val) {
   return val * 1 < 10 ? `0${val}` : val;
 }

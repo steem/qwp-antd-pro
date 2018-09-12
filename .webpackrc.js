@@ -19,6 +19,7 @@ export default {
     layouts: path.resolve(__dirname, 'src/layouts'),
     models: path.resolve(__dirname, 'src/models'),
     utils: path.resolve(__dirname, 'src/utils'),
+    common: path.resolve(__dirname, 'src/common'),
     assets: path.resolve(__dirname, 'src/assets'),
   },
   ignoreMomentLocale: true,

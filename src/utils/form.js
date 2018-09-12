@@ -145,6 +145,15 @@ export function setValidators(v) {
   if (v) validators = v;
 }
 
+export function isValidPort(data) {
+  if (!data || data.startsWith('0')) return false;
+  if (!isFieldValid(data, 'digits')) return false;
+
+  const v = parseInt(data, 10);
+  
+  return v > 0 && v < 65536;
+}
+
 export function isFieldValid(data, ruleName) {
   if (!validators[ruleName]) return -1;
 
@@ -214,6 +223,12 @@ function fillInitialValue(r, itemType, values, name) {
     r.initialValue = moment(values[name], 'YYYY-MM-DD');
   } else if (itemType === 'datehour') {
     r.initialValue = moment(values[name], 'YYYY-MM-DD HH:mm');
+  } else if (itemType === 'datetime_range') {
+    r.initialValue = [moment(values[name][0], 'YYYY-MM-DD HH:mm:ss'), moment(values[name][1], 'YYYY-MM-DD HH:mm:ss')];
+  } else if (itemType === 'date_range') {
+    r.initialValue = [moment(values[name][0], 'YYYY-MM-DD'), moment(values[name][1], 'YYYY-MM-DD')];
+  } else if (itemType === 'datehour_range') {
+    r.initialValue = [moment(values[name][0], 'YYYY-MM-DD HH:mm'), moment(values[name][1], 'YYYY-MM-DD HH:mm')];
   } else {
     r.initialValue = values[name];
     // try to guess date range picker
@@ -261,7 +276,7 @@ function getDateTimeValue(o) {
   return o.format('YYYY-MM-DD HH:mm:ss');
 }
 
-function formalizedFormValues(values, formRules, formName) {
+function formalizedFormValues(values, dst, formRules, formName) {
   const rule = formRules && formName && formRules[formName] ? formRules[formName] : false;
 
   for (const k in values) {
@@ -272,39 +287,48 @@ function formalizedFormValues(values, formRules, formName) {
         let itemType = rule[k].itemType;
         if (itemType.startsWith('date')) {
           if (itemType.endsWith('range')) {
-            itemType = itemType.substr(0, itemType.length - 5);
+            dst[k] = [0, 0];
+            itemType = itemType.substr(0, itemType.length - 6);
             if (itemType === 'datetime') {
-              values[k][0] = getDateTimeValue(values[k][0]);
-              values[k][1] = getDateTimeValue(values[k][1]);
+              dst[k][0] = getDateTimeValue(values[k][0]);
+              dst[k][1] = getDateTimeValue(values[k][1]);
             } else if (itemType === 'date') {
-              values[k][0] = values[k][0].format('YYYY-MM-DD');
-              values[k][1] = values[k][1].format('YYYY-MM-DD');
+              dst[k][0] = values[k][0].format('YYYY-MM-DD');
+              dst[k][1] = values[k][1].format('YYYY-MM-DD');
             } else if (itemType === 'datehour') {
-              values[k][0] = values[k][0].format('YYYY-MM-DD HH:mm');
-              values[k][1] = values[k][1].format('YYYY-MM-DD HH:mm');
+              dst[k][0] = values[k][0].format('YYYY-MM-DD HH:mm');
+              dst[k][1] = values[k][1].format('YYYY-MM-DD HH:mm');
             }
           } else if (itemType === 'datetime') {
-            values[k] = getDateTimeValue(values[k]);
+            dst[k] = getDateTimeValue(values[k]);
           } else if (itemType === 'date') {
-            values[k] = values[k].format('YYYY-MM-DD');
+            dst[k] = values[k].format('YYYY-MM-DD');
           } else if (itemType === 'datehour') {
-            values[k] = values[k].format('YYYY-MM-DD HH:mm');
+            dst[k] = values[k].format('YYYY-MM-DD HH:mm');
           }
           continue;
         }
       }
       if (name === 'Moment') {
-        values[k] = getDateTimeValue(values[k]);
+        dst[k] = getDateTimeValue(values[k]);
+        continue;
       } else if (name === 'Array') {
         if (values[k].length === 2) {
+          dst[k] = [0, 0];
           if (isMomentObject(values[k][0])) {
-            values[k][0] = getDateTimeValue(values[k][0]);
+            dst[k][0] = getDateTimeValue(values[k][0]);
+          } else {
+            dst[k][0] = values[k][0];
           }
           if (isMomentObject(values[k][1])) {
-            values[k][1] = getDateTimeValue(values[k][1]);
+            dst[k][1] = getDateTimeValue(values[k][1]);
+          } else {
+            dst[k][1] = values[k][1];
           }
+          continue;
         }
       }
+      dst[k] = values[k];
     }
   }
 }
@@ -313,10 +337,11 @@ export function submitForm ({form, onSubmit, dataKey, formRules, formName}) {
   const resetFields = () => form.resetFields();
   form.validateFieldsAndScroll((err, values) => {
     if (formName && values[formName]) values = values[formName];
-    formalizedFormValues(values, formRules, formName);
+    const fvs = {};
+    formalizedFormValues(values, fvs, formRules, formName);
     if (!dataKey) dataKey = 'f';
     onSubmit(err, {
-      [dataKey]: values,
+      [dataKey]: fvs,
     }, resetFields)
   });
 }
@@ -329,11 +354,12 @@ export function createSubmitHandler ({form, onSubmit, activeFields, dataKey, bef
       const fields = _.isFunction(activeFields) ? activeFields() : activeFields;
       form.validateFieldsAndScroll(fields, { force: true }, (err, values) => {
         if (formName && values[formName]) values = values[formName];
-        formalizedFormValues(values, formRules, formName);
-        if (beforeSubmit && beforeSubmit(values) === false) return;
+        const fvs = {};
+        formalizedFormValues(values, fvs, formRules, formName);
+        if (beforeSubmit && beforeSubmit(fvs) === false) return;
         if (!dataKey) dataKey = 'f';
         onSubmit(err, {
-          [dataKey]: values,
+          [dataKey]: fvs,
         }, resetFields);
       });
     }
@@ -342,11 +368,12 @@ export function createSubmitHandler ({form, onSubmit, activeFields, dataKey, bef
     e.preventDefault();
     form.validateFieldsAndScroll((err, values) => {
       if (formName && values[formName]) values = values[formName];
-      formalizedFormValues(values, formRules, formName);
-      if (beforeSubmit && beforeSubmit(values) === false) return;
+      const fvs = {};
+      formalizedFormValues(values, fvs, formRules, formName);
+      if (beforeSubmit && beforeSubmit(fvs) === false) return;
       if (!dataKey) dataKey = 'f'
       onSubmit(err, {
-        [dataKey]: values,
+        [dataKey]: fvs,
       }, resetFields)
     });
   };
@@ -453,6 +480,10 @@ export function importFormRules (settings) {
           }
           if (validatorDesc[ruleName]) r.message = validatorDesc[ruleName];
         } else {
+          if (ruleName.startsWith('date')) {
+            itemType = ruleName;
+            objectType = ruleName.endsWith('range') ? 'array' : 'object';
+          }
           r[ruleName] = ruleValue;
         }
         if (isNewCreated) newRules.rules.push(r);

@@ -1,4 +1,4 @@
-import mockjs from 'mockjs';
+const mockjs = require('mockjs');
 
 const color = {
   green: '#64ea91',

@@ -5,7 +5,7 @@
  * Copyright (c) 2015 Steem
  * Released under the MIT license
  */
-require_once(DRUPAL_DB_ROOT . '/database.inc');
+require_once(QWP_DB_ROOT . '/database.inc');
 
 global $QWP_ACTIVE_DB;
 
@@ -42,6 +42,8 @@ function db_add_condition(&$query, &$con) {
         $query->isNull($field);
     } else if ($field_con == 'not null') {
         $query->isNotNull($field);
+    } else if ($field_con) {
+        $query->condition($field, $value, $field_con);
     } else {
         $query->condition($field, $value);
     }
@@ -114,16 +116,34 @@ function db_set_fields(&$query, &$table, &$fields) {
     }
 }
 function db_select_ex($table, $conditions = null, $fields = null, $order_by = null) {
-  if (is_string($table)) {
-    $query = db_select($table, $table);
-  } else {
-    $query = db_select($table[0], $table[1]);
-  }
-  db_set_condition($query, $conditions);
-  db_set_fields($query, $table, $fields);
-  db_parse_order_by($query, $order_by);
+    if (is_string($table)) {
+        $query = db_select($table, $table);
+    } else {
+        $query = db_select($table[0], $table[1]);
+    }
+    db_set_condition($query, $conditions);
+    db_set_fields($query, $table, $fields);
+    db_parse_order_by($query, $order_by);
 
-  return $query->execute();
+    return $query->execute();
+}
+
+function db_select_one($table_name, $condition = null, $fields = null, $order_by = null) {
+    if (is_string($table)) {
+        $query = db_select($table, $table);
+    } else {
+        $query = db_select($table[0], $table[1]);
+    }
+    db_set_condition($cons, $condition);
+    db_set_fields($query_fields, $fields);
+    db_parse_order_by($query, $order_by);
+    $query->range(0, 1);
+    $ret = $query->execute();
+    if ($ret->rowCount() == 0) {
+        return false;
+    }
+
+    return $ret->fetchAssoc();
 }
 
 function db_result_count(&$ret) {
@@ -144,7 +164,7 @@ function db_update_ex($table, &$f, $conditions = null, $incs = null) {
     db_set_inc($query, $incs);
     return $query->execute();
 }
-function db_delete_ex($table, &$f, $conditions = null) {
+function db_delete_ex($table, $conditions = null) {
     $query = db_delete($table);
     db_set_condition($query, $conditions);
 

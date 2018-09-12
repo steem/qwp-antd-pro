@@ -36,7 +36,6 @@ function isValidPath() {
   if (!isValidFile(modulePath)) return false;
   if (!isValidFile(modulePath + '.js')) return false;
   if (!isValidFile(modulePath + '.less')) return false;
-  if (!isValidFile(path.join(moduleDir, objectName + 'Dialog.js'))) return false;
   if (!isValidFile(path.join(mockServicePath, modelName + '.js'))) return false;
   if (!isValidFile(path.join(modelsPath, modelName + '.js'))) return false;
 }

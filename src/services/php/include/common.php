@@ -116,6 +116,25 @@ function get_query_string() {
     }
     return "";
 }
+function is_field_not_equal(&$arr, $key, $v)
+{
+    return !isset($arr[$key]) || $arr[$key] != $v;
+}
+function is_one_key_empty(&$arr, $keys)
+{
+    if (is_string($keys))
+    {
+        $keys = array($keys);
+    }
+    foreach ($keys as $key)
+    {
+        if (!isset($arr[$key]) || !$arr[$key])
+        {
+            return true;
+        }
+    }
+    return false;
+}
 function get_joined_digits(&$v, &$ids) {
     $ids = explode(',', $v);
     if (count($ids) === 0) {
@@ -136,6 +155,21 @@ function array_to_query_string(&$arr) {
         $sep = '&';
     }
     return $p;
+}
+function array_from_key(&$arr, $key, &$dst)
+{
+    $dst = array();
+    foreach ($arr as &$item)
+    {
+        $dst[] = $item[$key];
+    }
+}
+function set_val_when_empty(&$arr, $keys, $val)
+{
+    if (is_string($keys)) $keys = array($keys);
+    foreach ($keys as &$key) {
+        if (!isset($arr[$key]) || !$arr[$key]) $arr[$key] = $val;
+    }
 }
 function save_uploaded_file($form_name, $file_name = null, $save_path = null, $keep_ext = true) {
     global $_FILES;
@@ -522,6 +556,18 @@ function rename_files_with_suffix($src, $dst, $suffix) {
         if (file_exists($src_file)) {
             @rename($src_file, join_paths($dst, $file));
         }
+    }
+}
+function unlink_files_with_suffix($src, $suffix)
+{
+    $files = scandir($src);
+    foreach ($files as $file)
+    {
+        if (is_dot_dir($file) || !ends_with($file, $suffix))
+        {
+            continue;
+        }
+        @unlink(join_paths($src, $file));
     }
 }
 function all_file_exists($files) {
@@ -1066,6 +1112,76 @@ function is_windows() {
 }
 
 // http related functions
+function http_request($url, &$my_data = null, $timeout = 60)
+{
+    $up_data = '';
+    if ($my_data)
+    {
+        $data = &$my_data;
+    }
+    else
+    {
+        $data = array();
+    }
+    if (isset($data['data']))
+    {
+        $up_data = http_build_query($data['data']);
+    }
+    $headers = array();
+    if ($up_data)
+    {
+        $headers[] = "Content-Length: " . strlen($up_data);
+    }
+    if (!isset($data['language']))
+    {
+        $language = 'en-US;q=0.6,en;q=0.4';
+    }
+    else
+    {
+        $language = $data['agent'];
+    }
+    $headers[] = 'Accept-Language: ' . $language;
+    if (isset($data['headers']))
+    {
+        $headers = array_merge($headers, $data['headers']);
+    }
+    if (isset($data['referer']) && $data['referer'])
+    {
+        $headers[] = 'Referer: ' . $data['referer'];
+    }
+    if (!isset($data['agent']))
+    {
+        $agent = 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.106 Safari/537.36';
+    }
+    else
+    {
+        $agent = $data['agent'];
+    }
+    $headers[] = 'User-Agent: ' . $agent;
+    $opts = array (
+        'http' => array (
+            'method' => isset($data['method']) ? $data['method'] : 'get',
+            'timeout' => $timeout,
+            'header'=> implode("\r\n", $headers),
+        )
+    );
+    if ($up_data)
+    {
+        $opts['http']['content'] = $up_data;
+    }
+    $context = stream_context_create($opts);
+    return @file_get_contents($url, false, $context);
+}
+function http_request_post($url, &$data, $timeout = 60)
+{
+    if (!isset($data['headers']))
+    {
+        $data['headers'] = array();
+    }
+    $data['method'] = 'post';
+    $data['headers'][] = 'Content-type: application/x-www-form-urlencoded';
+    return http_request($url, $data, $timeout);
+}
 function http_post($url, $data, $timeout = 180) {
     if (is_array($data)) {
         $data = http_build_query($data);
@@ -1203,26 +1319,11 @@ function array_append(&$arr, &$new_data)
     }
 }
 // validate functions
-function is_one_key_empty(&$arr, $keys)
-{
-    if (is_string($keys))
-    {
-        $keys = array($keys);
-    }
-    foreach ($keys as $key)
-    {
-        if (!isset($arr[$key]) || !$arr[$key])
-        {
-            return true;
-        }
-    }
-    return false;
-}
 function get_validators(&$rule, $name = null) {
-    static $rules;
+    global $_form_validator_rules;
     
-    if (!isset($rules)) {
-        $rules = array(
+    if (!isset($_form_validator_rules)) {
+        $_form_validator_rules = array(
             'digits' => "^\\d+$",
             'letters' => "^([a-z]|[A-Z])+$",
             'alphanumeric' => "^[\\w|-]+$",
@@ -1250,9 +1351,9 @@ function get_validators(&$rule, $name = null) {
         );
     }
     if ($name === null) {
-        $rule = &$rules;
+        $rule = $_form_validator_rules;
     } else if (isset($rules[$name])) {
-        $rule = &$rules[$name];
+        $rule = $_form_validator_rules[$name];
     } else {
         $rule = null;
     }
@@ -1379,6 +1480,12 @@ function is_hex($v) {
         get_validators($statement, 'hex');
     }
     return preg_match("/" . $statement . "/", $v);
+}
+function is_port($v) {
+    if (!$v || !is_digits($v)) return false;
+    $v = intval($v);
+
+    return $v > 0 && $v < 65536;
 }
 function create_password() {
     $s = random_string();

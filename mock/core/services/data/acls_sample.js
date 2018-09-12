@@ -1,4 +1,4 @@
-export default {
+module.exports = {
     '/portal': { name: '首页', icon: 'home' },
     '/test': { name: 'test', icon: 'dashboard' },
     '/sample': { name: '页面示例', icon: 'dashboard' },

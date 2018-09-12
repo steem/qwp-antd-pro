@@ -26,7 +26,7 @@ function _qwp_process_ops(&$msg, &$data, &$msg_type, &$ret) {
         if ($e->errorInfo[1] == 1062) {
             if (!$msg) $msg = isset($DUP_RECORD_MSG) ? L($DUP_RECORD_MSG) : L("Duplicated record, please check the parameters!");
         } else {
-            $msg = L("Failed to execute query: ") . (IN_DEBUG && $e->query_string ? $e->query_string : $e->getMessage());
+            $msg = L("Failed to execute query: ") . (IN_DEBUG && isset($e->query_string) && $e->query_string ? $e->query_string : $e->getMessage());
         }
     } catch (MongoDuplicateKeyException $e) {
         if (!$msg) $msg = isset($DUP_RECORD_MSG) ? L($DUP_RECORD_MSG) : L("Duplicated record, please check the parameters!");

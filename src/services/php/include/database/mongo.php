@@ -262,7 +262,14 @@ function db_select_ex($table_name, $condition = null, $fields = null, $order_by 
     return $cursor;
 }
 
-function db_select_one($table_name, $condition = null, $fields = null) {
+function db_select_one($table_name, $condition = null, $fields = null, $order_by = null) {
+    if ($order_by) {
+        $cursor = db_select_ex($table_name, $condition, $fields, $order_by);
+        if (db_next_record($cursor, $r)) {
+            return $r;
+        }
+        return false;
+    }
     if (is_array($table_name)) $table_name = $table_name[0];
     db_set_condition($cons, $condition);
     db_set_fields($query_fields, $fields);

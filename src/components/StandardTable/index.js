@@ -30,12 +30,13 @@ class StandardTable extends PureComponent {
   };
 
   handleTableChange = (pagination, filters, sorter) => {
-    this.props.onChange(pagination, filters, sorter);
+    if (this.props.onChange) this.props.onChange(pagination, filters, sorter);
   };
 
   render() {
     const { selectedRowKeys } = this.state;
-    const { data: { list, pagination }, loading, columns, rowKey, noRowSelection } = this.props;
+    const { data: { list, pagination }, loading, columns, 
+      rowKey, noRowSelection, expandedRowRender, showHeader, noPager } = this.props;
 
     const paginationProps = {
       showSizeChanger: true,
@@ -51,6 +52,12 @@ class StandardTable extends PureComponent {
       }),
     };
 
+    const otherProps = {};
+
+    if (expandedRowRender) otherProps.expandedRowRender = expandedRowRender;
+    if (showHeader === false) otherProps.showHeader = false;
+    if (noPager !== true) otherProps.pagination = paginationProps;
+
     return (
       <div className={styles.standardTable}>
         {this.props.children}
@@ -60,8 +67,8 @@ class StandardTable extends PureComponent {
           rowSelection={rowSelection}
           dataSource={list}
           columns={columns}
-          pagination={paginationProps}
           onChange={this.handleTableChange}
+          {...otherProps}
         />
       </div>
     );

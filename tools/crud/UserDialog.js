@@ -38,6 +38,8 @@ export default class UserDialog extends PureComponent {
       this.submitHandler = createSubmitHandler({
         form,
         onSubmit: this.onOk.bind(this),
+        formName,
+        formRules: settings.formRules,
       })
     }
 

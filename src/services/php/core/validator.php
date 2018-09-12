@@ -183,9 +183,6 @@ function qwp_filter_form_values(&$f, &$all_filters) {
     }
 }
 function qwp_validate_form_item(&$f, &$validator, &$field_value, &$validator_value) {
-    if (is_array($field_value)) {
-        return false;
-    }
     if ($validator == 'datetime') {
         return datetime_to_int($field_value) ? true : false;
     } else if ($validator == 'date') {
@@ -304,21 +301,27 @@ function qwp_validate_data(&$f, &$rules, &$filters = null, $just_unset_when_fail
                 if ($validator === 'array') {
                     continue;
                 }
-                foreach ($field_value as &$field_value_of_arr) {
-                    if (is_array($field_value_of_arr)) {
-                        if ($from !== null && isset($field_value_of_arr[$from])) {
-                            $chk_v = &$field_value_of_arr[$from];
+                if ($validator == 'datetime_range' || $validator == 'date_range' || $validator == 'datehour_range') {
+                    if (count($field_value) !== 2 || qwp_validate_form_item($f, $validator, $field_value, $validator_value) === false) {
+                        $is_item_valid = false;
+                    }
+                } else {
+                    foreach ($field_value as &$field_value_of_arr) {
+                        if (is_array($field_value_of_arr)) {
+                            if ($from !== null && isset($field_value_of_arr[$from])) {
+                                $chk_v = &$field_value_of_arr[$from];
+                            } else {
+                                $is_item_valid = false;
+                                break;
+                            }
                         } else {
+                            $chk_v = &$field_value_of_arr;
+                        }
+                        if (qwp_validate_form_item($f, $validator, $chk_v, $validator_value) === false) {
                             $is_item_valid = false;
                             break;
-                        }
-                    } else {
-                        $chk_v = &$field_value_of_arr;
+                        }    
                     }
-                    if (qwp_validate_form_item($f, $validator, $chk_v, $validator_value) === false) {
-                        $is_item_valid = false;
-                        break;
-                    }    
                 }
                 if ($is_item_valid) {
                     continue;

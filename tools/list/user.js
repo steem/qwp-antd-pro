@@ -217,20 +217,21 @@ export default class TableList extends PureComponent {
         <Menu.Item key="approval">批量审批</Menu.Item>
       </Menu>
     );
+    const isSelected = user.selectedRows && user.selectedRows.length > 0;
 
     return (
       <Card bordered={false}>
         <div className={styles.tableList}>
           <div className={styles.tableListForm}>{this.renderForm()}</div>
           <div className={styles.tableListOperator}>
-            {user.selectedRows && user.selectedRows.length > 0 && (
+            {isSelected && (
               <Dropdown overlay={menu}>
                 <Button>
                   更多操作 <Icon type="down" />
                 </Button>
               </Dropdown>
             )}
-            {user.selectedRows && user.selectedRows.length > 0 && (
+            {isSelected && (
               <div style={{float: 'right'}}>
                 <Alert
                   message={

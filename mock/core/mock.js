@@ -45,3 +45,8 @@ export function setupMocks(services) {
   services.get._mock = mockFns;
   services.post._mock = mockFns;
 }
+
+export function setupExpressMocks(app) {
+  app.get('/_mock', mockFns);
+  app.post('/_mock', mockFns);
+}
