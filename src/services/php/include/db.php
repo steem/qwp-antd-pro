@@ -128,14 +128,14 @@ function db_select_ex($table, $conditions = null, $fields = null, $order_by = nu
     return $query->execute();
 }
 
-function db_select_one($table_name, $condition = null, $fields = null, $order_by = null) {
+function db_select_one($table, $conditions = null, $fields = null, $order_by = null) {
     if (is_string($table)) {
         $query = db_select($table, $table);
     } else {
         $query = db_select($table[0], $table[1]);
     }
-    db_set_condition($cons, $condition);
-    db_set_fields($query_fields, $fields);
+    db_set_condition($query, $conditions);
+    db_set_fields($query, $table, $fields);
     db_parse_order_by($query, $order_by);
     $query->range(0, 1);
     $ret = $query->execute();

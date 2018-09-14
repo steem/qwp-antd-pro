@@ -399,10 +399,67 @@ function initErrorMessages() {
   validatorDesc._inited = true;
 }
 
+const ignoredRules = ['_msg', '_sqlchar', 'mixed', 
+  '_from', 'array',
+  'required', 'ui'].reduce((pre, cur) => {pre[cur] = true; return pre;}, {});
+
+function createRule(r, rules, ruleName, ruleValue) {
+  if (ignoredRules[ruleName]) return false;
+
+  if (ruleName === 'file') {
+    r.itemType = 'file';
+    r.validator = fileValidator;
+    r.message = validatorDesc.file;
+    if (ruleValue.length > 0) {
+      const rsArr = ruleValue[0].split(',');
+      if (rsArr.length) {
+        r.rs = {};
+        for (const rsi of rsArr) {
+          r.rs[rsi] = true;
+        }
+      }
+      if (ruleValue[1]) {
+        r.size = ruleValue[1].split(',');
+        if (r.size.length === 1) {
+          r.size = [1, r.size[0]];
+        }
+      }
+    }
+  } else if (ruleName === 'rangelength') {
+    [r.min, r.max] = ruleValue;
+    r.message = l('The length of this field must between {0} and {1}.', r.min, r.max);
+  } else if (ruleName === 'minlength') {
+    r.min = ruleValue;
+    r.message = l('The minimium length of this field must be {0}.', r.min);
+  } else if (ruleName === 'maxlength') {
+    r.max = ruleValue;
+    r.message = l('The maximum length of this field must be {0}.', r.max);
+  } else if (rangeErrorDesc[ruleName]) {
+    r.validator = compareValidator;
+    r.message = rangeErrorDesc[ruleName](...ruleValue);
+    r.rs = [ruleName, ruleValue];
+  } else if (validators[ruleName]) {
+    r.itemType = ruleName;
+    if (ruleName.startsWith('date')) {
+      r.type = ruleName.endsWith('range') ? 'array' : 'object';
+    } else if (_.isArray(validators[ruleName])) {
+      r.validator = createRegExValidatorByArray(rules);
+      r.rs = validators[ruleName];
+    } else {
+      r.validator = createRegExValidator(validators[ruleName], rules);
+    }
+    if (validatorDesc[ruleName]) r.message = validatorDesc[ruleName];
+  } else {
+    if (ruleName.startsWith('date')) {
+      r.itemType = ruleName;
+      r.type = ruleName.endsWith('range') ? 'array' : 'object';
+    }
+    r[ruleName] = ruleValue;
+  }
+}
+
 export function importFormRules (settings) {
   if (!settings || !settings.formRules) return;
-
-  const ignoredRules = ['_msg', '_sqlchar', '_from', 'array', 'requried', 'ui'];
 
   initErrorMessages();
   for (const p in settings.formRules) {
@@ -435,58 +492,16 @@ export function importFormRules (settings) {
           r = {};
           isNewCreated = true;
         }
-        if (ignoredRules.indexOf(ruleName) !== -1) continue;
-        if (ruleName === 'file') {
-          r.itemType = 'file';
-          r.validator = fileValidator;
-          r.message = validatorDesc.file;
-          if (ruleValue.length > 0) {
-            const rsArr = ruleValue[0].split(',');
-            if (rsArr.length) {
-              r.rs = {};
-              for (const rsi of rsArr) {
-                r.rs[rsi] = true;
-              }
-            }
-            if (ruleValue[1]) {
-              r.size = ruleValue[1].split(',');
-              if (r.size.length === 1) {
-                r.size = [1, r.size[0]];
-              }
-            }
+        if (createRule(r, newRules.rules, ruleName, ruleValue) !== false) {
+          if (r.type) {
+            objectType = r.type;
           }
-        } else if (ruleName === 'rangelength') {
-          [r.min, r.max] = ruleValue;
-          r.message = l('The length of this field must between {0} and {1}.', r.min, r.max);
-        } else if (ruleName === 'minlength') {
-          r.min = ruleValue;
-          r.message = l('The minimium length of this field must be {0}.', r.min);
-        } else if (ruleName === 'maxlength') {
-          r.max = ruleValue;
-          r.message = l('The maximum length of this field must be {0}.', r.max);
-        } else if (rangeErrorDesc[ruleName]) {
-          r.validator = compareValidator;
-          r.message = rangeErrorDesc[ruleName](...ruleValue);
-          r.rs = [ruleName, ruleValue];
-        } else if (validators[ruleName]) {
-          itemType = ruleName;
-          if (itemType.startsWith('date')) {
-            objectType = itemType.endsWith('range') ? 'array' : 'object';
-          } else if (_.isArray(validators[ruleName])) {
-            r.validator = createRegExValidatorByArray(newRules.rules);
-            r.rs = validators[ruleName];
-          } else {
-            r.validator = createRegExValidator(validators[ruleName], newRules.rules);
+          if (r.itemType) {
+            itemType = r.itemType;
+            delete r.itemType;
           }
-          if (validatorDesc[ruleName]) r.message = validatorDesc[ruleName];
-        } else {
-          if (ruleName.startsWith('date')) {
-            itemType = ruleName;
-            objectType = ruleName.endsWith('range') ? 'array' : 'object';
-          }
-          r[ruleName] = ruleValue;
+          if (isNewCreated) newRules.rules.push(r);
         }
-        if (isNewCreated) newRules.rules.push(r);
       }
       if (newRules.rules.length > 0) {
         const msg =  formRule._msg ? l(formRule._msg) : validatorDesc.general;

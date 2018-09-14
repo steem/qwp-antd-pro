@@ -19,6 +19,15 @@ function* fetchUser(call, put, payload, noNotice) {
   }
 }
 
+function* updateSelection(r, put) {
+  yield put({
+    type: 'updateState',
+    payload: {
+      selectedRows: r,
+    },
+  });
+}
+
 export default {
   namespace: 'user',
 
@@ -70,12 +79,7 @@ export default {
 
     *fetch(_, { select, call, put }) {
       const p = yield select(s => s.user.data.pagination);
-      yield put({
-        type: 'updateState',
-        payload: {
-          selectedRows: [],
-        },
-      });
+      yield call(updateSelection, [], put);
       const params = _.payload || p;
       if (!params.pageSize) params.pageSize = config.tablePagination.pageSize;
       yield call(fetchUser, call, put, params);
@@ -93,6 +97,7 @@ export default {
       const data = yield call(userService.remove, { f: ids });
       if (data) showOpsNotification(data, l('Delete user'), l('User are deleted successfully'))
       if (data && data.success) {
+        yield call(updateSelection, [], put);
         const p = yield select(s => s.user.data.pagination);
         yield call(fetchUser, call, put, p, true);
       }
@@ -102,7 +107,8 @@ export default {
       const data = yield call(userService.create, payload)
       if (data) showOpsNotification(data, l('Create user'), l('New user has been created successfully'));
       if (data && data.success) {
-        callback();
+        if (callback) callback();
+        yield call(updateSelection, [], put);
         const p = yield select(s => s.user.data.pagination);
         yield call(fetchUser, call, put, p, true);
       }
@@ -112,7 +118,8 @@ export default {
       const data = yield call(userService.update, payload)
       if (data) showOpsNotification(data, l('Edit user information'), l('User information is updated successfully'))
       if (data && data.success) {
-        callback();
+        if (callback) callback();
+        yield call(updateSelection, [], put);
         const p = yield select(s => s.user.data.pagination);
         yield call(fetchUser, call, put, p, true);
       }

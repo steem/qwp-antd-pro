@@ -1,6 +1,6 @@
 import React from 'react';
 import { Input } from 'antd';
-import { keyboardFilters } from 'utils/keyboard';
+import * as keyboardFilters from 'utils/keyboard';
 
 
 class DigitsInput extends React.Component {

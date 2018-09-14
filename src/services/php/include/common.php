@@ -1482,10 +1482,30 @@ function is_hex($v) {
     return preg_match("/" . $statement . "/", $v);
 }
 function is_port($v) {
-    if (!$v || !is_digits($v)) return false;
     $v = intval($v);
 
     return $v > 0 && $v < 65536;
+}
+function get_valid_file_path(&$path) {
+    $path = str_replace("\\", '/', $path);
+    $path = explode('/', $path);
+    $i = 0;
+    foreach ($path as &$item) {
+        if ($i === 0 && empty($item)) continue;
+        if (strpos($item, '..') !== false) {
+            return false;
+        }
+        ++$i;
+        if (!preg_match("/^[a-zA-Z0-9\\-\\.\\_]+$/", $item)) {
+            return false;
+        }
+    }
+    $path = join_paths($path);
+    if (!starts_with($path, '/') && !starts_with($path, "\\")) {
+        $path = '/' . $path;
+    }
+
+    return true;
 }
 function create_password() {
     $s = random_string();

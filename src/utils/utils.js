@@ -217,7 +217,11 @@ export function showOpsNotification(data, title, sucMessage, failedMessage) {
 }
 
 export function showErrorMessage(msg) {
-  message.error(msg);
+  if (_.isString(msg)) {
+    message.error(msg);
+    return;
+  }
+  message.error('表单中仍有部分值格式填写不正确，请重新检查后提交');
 }
 
 export function pv(o, k, d) {
@@ -238,4 +242,18 @@ export function updateConfig(v) {
   if (isSame) return;
   config.layout = {...config.layout, ...v};
   config.layout.changed = true;
+}
+
+export function convertBitSize(s) {
+  s = parseInt(s, 10);
+  if (s >= 1024 * 1024 * 1024) {
+    s = Math.round(s / (1024 * 1024 * 1024)) + ' TB';
+  } else if (s >= 1024 * 1024) {
+    s = Math.round(s / (1024 * 1024)) + ' GB';
+  } else if (s >= 1024) {
+    s = Math.round(s / 1024) + ' MB';
+  } else {
+    s += ' B';
+  }
+  return s;
 }

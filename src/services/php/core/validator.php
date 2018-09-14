@@ -205,7 +205,11 @@ function qwp_validate_form_item(&$f, &$validator, &$field_value, &$validator_val
         }
         return datetime_to_int($field_value[0]. ':00') && datetime_to_int($field_value[1]. ':00') ? true : false;
     } else if ($validator == 'digits') {
-        return is_digits($field_value);
+        if (!is_digits($field_value)) return false;
+        if ($validator_value !== true) {
+            return qwp_validate_form_item($f, $validator_value[0], $field_value, $validator_value[1]);
+        }
+        return true;
     } else if ($validator == 'length') {
         return mb_strlen($field_value, 'utf8') === $validator_value;
     } else if ($validator == 'minlength') {
@@ -225,13 +229,21 @@ function qwp_validate_form_item(&$f, &$validator, &$field_value, &$validator_val
         $equal_item = isset($f[$validator_value[1]]) ? $f[$validator_value[1]] : null;
         return $field_value === $equal_item;
     } else if ($validator == 'in') {
-        return in_array($field_value, $validator_value);
+        if (is_array($validator_value)) return in_array($field_value, $validator_value);
+        return $field_value === $validator_value;
     } else if ($validator == '[)') {
         return $field_value >= $validator_value[0] && $field_value < $validator_value[1];
     } else if ($validator == '(]') {
         return $field_value > $validator_value[0] && $field_value <= $validator_value[1];
     } else if ($validator == '()') {
         return $field_value > $validator_value[0] && $field_value < $validator_value[1];
+    } else if ($validator == 'mixed') {
+        foreach ($validator_value as $k => &$v) {
+            if (qwp_validate_form_item($f, $k, $field_value, $v)) {
+                return true;
+            }
+        }
+        return false;
     }
     return is_valid_input($field_value, $validator);
 }

@@ -6,7 +6,7 @@ import {
   Icon,
   message,
 } from 'antd';
-import { keyboardFilters } from 'utils/keyboard';
+import * as keyboardFilters from 'utils/keyboard';
 import { l } from 'utils/localization';
 
 class MultiTags extends React.Component {
