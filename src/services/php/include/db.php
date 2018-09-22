@@ -48,9 +48,9 @@ function db_add_condition(&$query, &$con) {
         $query->condition($field, $value);
     }
 }
-function db_set_inc(&$query, &$ori) {
-    if (!$ori) return;
-    if (is_string($ori)) {
+function db_set_inc(&$query, &$fields) {
+    if (!$fields) return;
+    if (is_string($fields)) {
         $tmp = explode(',', $fields);
         foreach ($tmp as &$k) {
             if (!$k) continue;
@@ -58,9 +58,9 @@ function db_set_inc(&$query, &$ori) {
         }
         return;
     }
-    foreach ($ori as $key => &$item) {
+    foreach ($fields as $k => &$item) {
         if (is_int($k)) {
-            $query->expression($k, $k . '+1');
+            $query->expression($item, $item . '+1');
         } else {
             $query->expression($k, $k . '+:amount', array(':amount' => $item));
         }
@@ -159,7 +159,8 @@ function db_insert_ex($table, &$f) {
     return db_insert($table)->fields($f)->execute();
 }
 function db_update_ex($table, &$f, $conditions = null, $incs = null) {
-    $query = db_update($table)->fields($f);
+    $query = db_update($table);
+    if (count($f) > 0) $query->fields($f);
     db_set_condition($query, $conditions);
     db_set_inc($query, $incs);
     return $query->execute();
@@ -696,7 +697,6 @@ function qwp_db_get_data($table_name, &$data, $fields, &$options = null) {
             }
         }
     }
-    $data = array();
     qwp_db_init_order_by($options);
     qwp_db_init_search_params($options);
     qwp_create_query($query, $table_name, $fields, $options);
@@ -723,5 +723,16 @@ function qwp_db_get_data($table_name, &$data, $fields, &$options = null) {
                 }
             }
         }
+    }
+
+    return count($data);
+}
+function qwp_statistics_by_day($table_name) {
+    $day = get_date();
+    if (qwp_db_has_record($table_name, null, array(array('day', $day)))) {
+        db_update_ex($table_name, $f, array('day', $day), 'total');
+    } else {
+        $data = array('day' => $day, 'total' => 1);
+        db_insert_ex($table_name, $data);
     }
 }

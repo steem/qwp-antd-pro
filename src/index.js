@@ -20,6 +20,7 @@ app.use(createLoading());
 
 // 3. Register main model
 app.model(require('./models/main').default);
+app.model(require('./models/passport').default);
 
 // 4. Router
 app.router(require('./config').default);

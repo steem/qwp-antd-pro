@@ -22,7 +22,7 @@ export async function logout () {
 
 export async function changePassword (params) {
   return request({
-    url: uri.ops({ op: 'pwd', restfulApi, m: 'user', mock }),
+    url: uri.ops({ op: 'pwd', restfulApi, m, mock }),
     method: 'post',
     body: params,
   })

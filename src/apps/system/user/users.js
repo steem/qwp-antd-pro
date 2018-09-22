@@ -15,16 +15,16 @@ import {
   Alert,
 } from 'antd';
 import StandardTable from 'components/StandardTable';
+import FormItemEx from 'components/Helper/FormItem';
 import RandomAvatar from 'components/Helper/RandomAvatar';
 import DropOption from 'components/DropOption';
-import { createSubmitHandlerForSearch, getFieldDecorator } from 'utils/form';
+import { createSubmitHandlerForSearch } from 'utils/form';
 import { showErrorMessage } from 'utils/utils';
 import { l } from 'utils/localization';
 import { createTableColumn, handleTableChange } from 'utils/table';
 import UserDialog from './UserDialog';
 import styles from './users.less';
 
-const FormItem = Form.Item;
 const { Option } = Select;
 const searchFormName = 'search';
 
@@ -154,19 +154,24 @@ export default class TableList extends PureComponent {
 
   renderSimpleForm() {
     const { form, users: { settings } } = this.props;
+    const formItemProps = {
+      form,
+      settings,
+      formName: searchFormName,
+    };
 
     return (
       <Form onSubmit={this.searchSubmitHandler} layout="inline">
         <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
           <Col md={8} sm={24}>
-            <FormItem label="创建日期">
-              {getFieldDecorator(form, settings, searchFormName, 'create_time' )(<DatePicker style={{ width: '100%' }} placeholder="请输入更新日期" />)}
-            </FormItem>
+            <FormItemEx {...formItemProps} fieldName="create_time">
+              <DatePicker style={{ width: '100%' }} placeholder="请输入创建日期" />
+            </FormItemEx>
           </Col>
           <Col md={8} sm={24}>
-            <FormItem label="姓名">
-              {getFieldDecorator(form, settings, searchFormName, 'name' )(<Input placeholder="请输入" />)}
-            </FormItem>
+            <FormItemEx {...formItemProps} fieldName="name">
+              <Input placeholder="请输入" />
+            </FormItemEx>
           </Col>
           <Col md={8} sm={24}>
             <span className={styles.submitButtons}>
@@ -188,46 +193,49 @@ export default class TableList extends PureComponent {
 
   renderAdvancedForm() {
     const { form, users: { settings } } = this.props;
+    const formItemProps = {
+      form,
+      settings,
+      formName: searchFormName,
+    };
 
     return (
       <Form onSubmit={this.searchSubmitHandler} layout="inline">
         <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
           <Col md={8} sm={24}>
-            <FormItem label="创建日期">
-              {getFieldDecorator(form, settings, searchFormName, 'create_time')(<DatePicker style={{ width: '100%' }} placeholder="请输入创建日期" />)}
-            </FormItem>
+            <FormItemEx {...formItemProps} fieldName="create_time">
+              <DatePicker style={{ width: '100%' }} placeholder="请输入创建日期" />
+            </FormItemEx>
           </Col>
           <Col md={8} sm={24}>
-            <FormItem label="姓名">
-              {getFieldDecorator(form, settings, searchFormName, 'name')(<Input placeholder="请输入" />)}
-            </FormItem>
+            <FormItemEx {...formItemProps} fieldName="name">
+              <Input placeholder="请输入" />
+            </FormItemEx>
           </Col>
           <Col md={8} sm={24}>
-            <FormItem label="电话号码">
-              {getFieldDecorator(form, settings, searchFormName, 'phone')(<Input placeholder="请输入" />)}
-            </FormItem>
+            <FormItemEx {...formItemProps} fieldName="phone">
+              <Input placeholder="请输入" />
+            </FormItemEx>
           </Col>
         </Row>
         <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
           <Col md={8} sm={24}>
-            <FormItem label="邮箱">
-              {getFieldDecorator(form, settings, searchFormName, 'email')(<Input placeholder="请输入" />)}
-            </FormItem>
+            <FormItemEx {...formItemProps} fieldName="email">
+              <Input placeholder="请输入" />
+            </FormItemEx>
           </Col>
           <Col md={8} sm={24}>
-            <FormItem label="地址">
-              {getFieldDecorator(form, settings, searchFormName, 'address')(<Input placeholder="请输入" />)}
-            </FormItem>
+            <FormItemEx {...formItemProps} fieldName="address">
+              <Input placeholder="请输入" />
+            </FormItemEx>
           </Col>
           <Col md={8} sm={24}>
-            <FormItem label="状态">
-              {getFieldDecorator(form, settings, searchFormName, 'status')(
-                <Select placeholder="请选择" style={{ width: '100%' }}>
-                  <Option value="y">启用</Option>
-                  <Option value="n">禁用</Option>
-                </Select>
-              )}
-            </FormItem>
+            <FormItemEx {...formItemProps} fieldName="status">
+              <Select placeholder="请选择" style={{ width: '100%' }}>
+                <Option value="y">启用</Option>
+                <Option value="n">禁用</Option>
+              </Select>
+            </FormItemEx>
           </Col>
         </Row>
         <div style={{ overflow: 'hidden' }}>

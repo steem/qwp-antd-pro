@@ -61,7 +61,7 @@ function addRouter(router, parentPath, parentIdentity) {
     }
     if (key.endsWith('/')) key = key.substr(0, key.length - 1);
     if (item.icon) routersIcon[key] = item.icon;
-    const isPublic = router.public || item.public;
+    const isPublic = !!(router.public || item.public);
     routers[key] = [item.path || parentIdentity, item.icon ? item.icon : '', router.page || item.page, isPublic];
     if (isPublic) updatePublicRouters(key);
     let code = "'" + key + "': { component: dynamicWrapper(app, ";

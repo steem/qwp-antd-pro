@@ -226,7 +226,12 @@ function qwp_validate_form_item(&$f, &$validator, &$field_value, &$validator_val
     } else if ($validator == 'range' || $validator == '[]') {
         return $field_value >= $validator_value[0] && $field_value <= $validator_value[1];
     } else if ($validator == 'equalTo' || $validator == '=') {
-        $equal_item = isset($f[$validator_value[1]]) ? $f[$validator_value[1]] : null;
+        if (is_array($validator_value)) {
+            $equal_item = isset($f[$validator_value[1]]) ? $f[$validator_value[1]] : null;
+        } else {
+            $equal_item = isset($f[$validator_value]) ? $f[$validator_value] : null;
+        }
+
         return $field_value === $equal_item;
     } else if ($validator == 'in') {
         if (is_array($validator_value)) return in_array($field_value, $validator_value);
@@ -254,6 +259,12 @@ function qwp_validate_data(&$f, &$rules, &$filters = null, $just_unset_when_fail
     $msg_base = L('Invalid form data');
     $empty_value = L('empty');
     $valid_fields = array();
+    $continue_validators = array(
+        'required' => 1,
+        'optional' => 1,
+        'file' => 1,
+        'name' => 1,
+    );
     foreach ($rules as $field_name => &$rule) {
         $op = isset($rule['op']) ? $rule['op'] : '';
         if ($op) {
@@ -305,7 +316,7 @@ function qwp_validate_data(&$f, &$rules, &$filters = null, $just_unset_when_fail
                 }
                 continue;
             }
-            if ($validator == 'required' || $validator == 'optional' || $validator === 'file' || starts_with($validator, 'op_')) {
+            if (isset($continue_validators[$validator]) || starts_with($validator, 'op_')) {
                 continue;
             }
             if (is_array($field_value)) {

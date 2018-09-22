@@ -40,13 +40,13 @@ const myOps = createOps({
 }, {
   books: {
     id: { required: true, 'digits': true, op: 'edit', ui: false },
-    name: { required: true, rangelength: [1, 256], 'op_edit': 2 },
-    description: { rangelength: [1, 256] },
+    name: { required: true, rangelength: [1, 256], 'op_edit': 2, name: '书名' },
+    description: { rangelength: [1, 256], name: '描述' },
   },
   search: {
-    name: { rangelength: [1, 256] },
-    description: { rangelength: [1, 256] },
-    create_time: { date: true },
+    name: { rangelength: [1, 256], name: '书名' },
+    description: { rangelength: [1, 256], name: '描述' },
+    create_time: { date: true, name: '创建时间' },
   },
 }, {
   create_time: (item, filter) => {

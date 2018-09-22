@@ -5,7 +5,8 @@ import {
 } from 'antd';
 import AutoSizeDialog from 'components/Dialog';
 import MultiTags from 'components/Helper/MultiTags';
-import { createSubmitHandler, getFieldDecorator } from 'utils/form';
+import FormItemEx from 'components/Helper/FormItem';
+import { createSubmitHandler } from 'utils/form';
 import { showErrorMessage } from 'utils/utils';
 
 const FormItem = Form.Item;
@@ -55,6 +56,15 @@ export default class BooksDialog extends PureComponent {
         formRules: settings.formRules,
       })
     }
+
+    const formItemProps = {
+      labelCol: { span: 5 },
+      wrapperCol: { span: 15 },
+      form,
+      settings,
+      formName,
+      values,
+    };
     return (
       <AutoSizeDialog 
         title={isEdit ? '编辑对象' : '创建对象'}
@@ -65,15 +75,15 @@ export default class BooksDialog extends PureComponent {
         onCancel={() => handleModalVisible(false)}
       >
         {!isEdit && (
-        <FormItem labelCol={{ span: 5 }} wrapperCol={{ span: 15 }} label="名称">
-          {getFieldDecorator(form, settings, formName, 'name', values)(<Input placeholder="请输入" disabled={isEdit} />)}
-        </FormItem>)}
+        <FormItemEx {...formItemProps} fieldName="name">
+          <Input placeholder="请输入" disabled={isEdit} />
+        </FormItemEx>)}
         <FormItem labelCol={{ span: 5 }} wrapperCol={{ span: 15 }} label="标签">
           <MultiTags color="blue" pattern={tagPattern} saveTags={this.saveTags.bind(this)} maxLength={20} tags={values && values.tags ? values.tags : []} />
         </FormItem>
-        <FormItem labelCol={{ span: 5 }} wrapperCol={{ span: 15 }} label="描述">
-          {getFieldDecorator(form, settings, formName, 'description', values)(<Input placeholder="请输入" />)}
-        </FormItem>
+        <FormItemEx {...formItemProps} fieldName="description">
+          <Input placeholder="请输入" />
+        </FormItemEx>
       </AutoSizeDialog>
     );
   }

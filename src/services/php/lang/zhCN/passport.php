@@ -5,4 +5,5 @@ $lang = array(
   'Password confirmation' => '密码确认',
   'New password is required' => '新密码必须填写',
   'Password confirmation is required' => '密码确认必须填写',
+  'Login successfully' => '登录成功',
 );

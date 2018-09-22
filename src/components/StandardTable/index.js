@@ -36,7 +36,7 @@ class StandardTable extends PureComponent {
   render() {
     const { selectedRowKeys } = this.state;
     const { data: { list, pagination }, loading, columns, 
-      rowKey, noRowSelection, expandedRowRender, showHeader, noPager } = this.props;
+      rowKey, noRowSelection, rowSelectionType, expandedRowRender, showHeader, noPager, locale } = this.props;
 
     const paginationProps = {
       showSizeChanger: true,
@@ -50,6 +50,7 @@ class StandardTable extends PureComponent {
       getCheckboxProps: record => ({
         disabled: record.disabled,
       }),
+      type: rowSelectionType || 'checkbox',
     };
 
     const otherProps = {};
@@ -57,6 +58,7 @@ class StandardTable extends PureComponent {
     if (expandedRowRender) otherProps.expandedRowRender = expandedRowRender;
     if (showHeader === false) otherProps.showHeader = false;
     if (noPager !== true) otherProps.pagination = paginationProps;
+    else otherProps.pagination = false;
 
     return (
       <div className={styles.standardTable}>
@@ -69,6 +71,7 @@ class StandardTable extends PureComponent {
           columns={columns}
           onChange={this.handleTableChange}
           {...otherProps}
+          {...locale}
         />
       </div>
     );

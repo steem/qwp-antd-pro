@@ -4,7 +4,6 @@ if(!defined('QWP_ROOT')){exit('Invalid Request');}
 function delete_user(&$msg, &$data) {
     global $F;
 
-    $msg = L('Invalid parameters');
     if (!get_joined_digits($F, $ids)) {
         return false;
     }
@@ -12,7 +11,6 @@ function delete_user(&$msg, &$data) {
         array('id', $ids, 'in'),
         array('editable', 'y'),
     ));
-    $msg = L('Delete selected users successfully');
 }
 define('IN_MODULE', 1);
 qwp_set_ops_process('delete_user');

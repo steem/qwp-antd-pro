@@ -18,6 +18,7 @@ module.exports = {
     siderScrollbarThumber: 'rgb(123, 225, 248)',
     contentScrollbarThumber: 'rgb(160, 153, 153)',
   },
+  footerText: 'QWP © 2018 Powered by QWP',
   screenMediaList: {
     'screen-xs': {
       maxWidth: 575,

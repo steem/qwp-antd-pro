@@ -89,7 +89,6 @@ function qwp_is_global_app_settings_request() {
         'lang' => array(),
         'headerNav' => QWP_ENABLE_HEADER_NAV ? qwp_get_default_header_nav() : array(),
         'validators' => $validators,
-        'footer' => qwp_get_footer(),
     );
     $lang = null;
     if (QWP_PACK_ALL_LANG) {
@@ -103,6 +102,7 @@ function qwp_is_global_app_settings_request() {
             $app_settings['lang'][] = array('/', $lang);
         }
     }
+    global $lang_txts;
     qwp_load_lang_for_module('passport');
     if (isset($lang_txts) && $lang_txts) $app_settings['lang'][] = array('/', $lang_txts);
     qwp_render_app_settings($app_settings);

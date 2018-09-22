@@ -6,7 +6,7 @@ const {
 } = require('./common');
 
 const moduleMaps = {
-  '/system/user': 'user',
+  '/system/user/users': 'user',
   '/system/org': 'org',
   '/sample/profile/books': 'books',
   /* moduleMaps */

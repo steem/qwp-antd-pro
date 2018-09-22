@@ -634,7 +634,7 @@ function join_paths() {
     foreach ($args as $arg) {
         $paths = array_merge($paths, (array)$arg);
     }
-    return is_windows() ? join("\\", $paths) : join('/', $paths);
+    return implode(DIRECTORY_SEPARATOR, $paths);
 }
 // date & time related functions
 function get_day_start($t = 0) {
@@ -752,6 +752,21 @@ function date_to_int($timestamp, $format = 'Y-m-d') {
     }
     return @mktime(0, 0, 0, $ret['month'], $ret['day'], $ret['year']);
 }
+function convert_datetime_range_for_search(&$s, $key = 'create_time') {
+    if (!isset($s['create_time'])) {
+        return;
+    }
+    if (!is_array($s['create_time'])) {
+        unset($s['create_time']);
+        return;
+    }
+    if ($s['create_time'][0] !== $s['create_time'][1]) {
+        return;
+    }
+    $t = datetime_to_int($s['create_time'][0]);
+    $t = get_day_start(get_next_day_time($t, 1));
+    $s['create_time'][1] = get_datetime($t);
+}
 function xls_time_to_int($t) {
     return @mktime(0, 0, 0, 1, intval($t) - 1, 1900);
 }
@@ -833,7 +848,7 @@ function get_sep_date(&$y, &$m, &$d, $t = 0) {
     $m = intval(@date("m", $t));
     $d = intval(@date("d", $t));
 }
-function get_last_days(&$date, $nums) {
+function get_last_days(&$date, $nums, $range = true) {
     $year = 0;
     $month = 0;
     $day = 0;
@@ -841,9 +856,13 @@ function get_last_days(&$date, $nums) {
     for ($i = $nums - 1; $i >= 0; --$i) {
         $aDay = $day - $i;
         $t = mktime(0, 0, 0, $month, $aDay, $year);
-        $d = array();
-        $d['day'] = get_date($t);
-        $d['range'] = array(get_datetime($t), get_datetime(mktime(23, 59, 59, $month, $aDay, $year)));
+        if ($range) {
+            $d = array();
+            $d['day'] = get_date($t);
+            $d['range'] = array(get_datetime($t), get_datetime(mktime(23, 59, 59, $month, $aDay, $year)));
+        } else {
+            $d = get_date($t);
+        }
         $date[] = $d;
     }
 }

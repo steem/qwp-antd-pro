@@ -5,7 +5,7 @@ const serviceOps = {};
 
 function isPublicModule(routers, key) {
   for (const r in routers) {
-    if (r.indexOf(key) === 0 && r[3]) return true;
+    if (r.indexOf(key) === 0 && routers[r][3]) return true;
   }
   return false;
 }

@@ -20,32 +20,25 @@ function _l (txt, ...args) {
 }
 
 export function l(txt, ...args) {
-  const appPath = uri.current().split('/')
+  const appPath = uri.current().split('/');
+
+  appPath.shift();
   while (appPath.length > 0) {
-    let path = appPath.join('/')
-    if (!path) path = '/';
-    if (_LANG[path]) {
-      const sl = _LANG[path]
-      if (sl[txt]) return _l(sl[txt], ...args);
-    }
+    const path = appPath.join('/');
+    const sl = _LANG[path];
+    if (sl && sl[txt]) return _l(sl[txt], ...args);
     appPath.pop();
   }
-  return _l(txt, ...args);
+  const sl = _LANG['/'];
+
+  return _l(sl ? (sl[txt] || txt) : txt, ...args);
 }
 
-export function set(language, update) {
+export function set(language) {
   for (const i in language) {
     const sl = language[i]
     const appPath = sl[0] === '/passport' ? '/' : sl[0]
     if (!_LANG[appPath]) _LANG[appPath] = sl[1]
     else Object.assign(_LANG[appPath], sl[1])
-  }
-  if (language.length > 0 && update) {
-    update({
-      type: 'updateState',
-      payload: {
-        localeChangedTag: (new Date()).getTime(),
-      },
-    })
   }
 }

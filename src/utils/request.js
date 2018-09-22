@@ -35,7 +35,7 @@ function checkStatus(response) {
 
 function showError(e) {
   if (e.name === -1) {
-    showErrorMessage(l('Please login'));
+    showErrorMessage(e.response && e.response.message ? e.response.message : l('Please login'));
     store.dispatch({
       type: 'main/init',
     });
@@ -56,7 +56,7 @@ function createFormData(data, parent) {
     if (_.isObject(data[k])) {
       r += sep + createFormData(data[k], kk);
     } else {
-      r += `${sep}${kk}=${data[k] ? encodeURIComponent(data[k]) : ''}`;
+      r += `${sep}${kk}=${encodeURIComponent(data[k])}`;
     }
     if (!sep) sep = '&';
   }
@@ -115,7 +115,7 @@ export default function request(url, options) {
       return response.text();
     })
     .then(ret => {
-      if (ret && ret.notLogin) {
+      if (ret && ret.data && ret.data.toLogin) {
         throwError('', -1, ret);
       }
       return ret;

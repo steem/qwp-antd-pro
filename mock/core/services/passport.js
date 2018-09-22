@@ -18,6 +18,7 @@ const L = {
 // 后端代码可用把权限列表保存在数据库，并设计好排序方式，按顺序输出即可控制模块在前端的显示顺序
 const acls = require('./data/acls')
 
+const defaultComponent = 'portal';
 const defaultUser = {
   name: 'Guest',
   avatar: 'avatar.png',
@@ -141,7 +142,7 @@ module.exports = {
         response.data.user.isLogined = true;
         response.data.userMenu = userMenuAfterLogin;
         response.data.acls = acls;
-        response.data.default = "/portal";
+        response.data.default = defaultComponent;
         response.data.tables = tables;
       } else {
         response.data.userMenu = defaultUserMenu;

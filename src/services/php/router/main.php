@@ -18,7 +18,7 @@ try {
             exit('Invalid Request');
             break;
         }
-        session_start();
+        @session_start();
         qwp_initialize_language();
         if (qwp_is_global_app_settings_request()) {
             break;

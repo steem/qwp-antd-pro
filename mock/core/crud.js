@@ -105,7 +105,7 @@ function createOps (mockTmpl, path = '/', L = {}, tables = {}, formRules = {}, f
               const src = item[key];
 
               if (filters[key]) return filters[key](src, dst);
-              return String(src).indexOf(dst) > -1;
+              return String(src).indexOf(dst) !== -1;
             }
             return true
           })

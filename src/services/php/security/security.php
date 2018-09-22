@@ -221,14 +221,14 @@ function qwp_doing_security_check() {
         return true;
     }
     $uri = QWP_JUST_SERVICE ? QWP_MODULE_SEP . $MODULE_URI : $MODULE_URI;
-    if (!isset($acls['modules'][$uri])) {
-        return false;
-    }
     if ($OP) {
         if ($PAGE) {
             $uri .= QWP_MODULE_SEP . $PAGE;
         }
         return isset($acls['ops'][$uri]) && ($IS_APP_SETTING_REQ || isset($acls['ops'][$uri][$OP]));
+    }
+    if (!isset($acls['modules'][$uri])) {
+        return false;
     }
     if ($PAGE) {
         return isset($acls['pages'][$uri]) && isset($acls['pages'][$uri][$PAGE]);

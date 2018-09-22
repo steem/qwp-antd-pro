@@ -53,17 +53,17 @@ const myOps = createOps({
 }, {
   user: {
     id: { required: true, rangelength: [6, 32], op: 'edit', ui: false },
-    account: { required: true, rangelength: [5, 32], 'op_edit': 2 },
-    pwd: { required: true, password: true, 'op_edit': 0 },
-    name: { required: true, rangelength: [6, 64] },
-    nick_name: { rangelength: [6, 128] },
-    phone: { rangelength: [6, 16], digits: true },
-    age: { digits: true, range: [1, 200] },
-    email: { email: true, rangelength: [8, 128] },
-    address: { rangelength: [6, 128] },
+    account: { required: true, rangelength: [5, 32], 'op_edit': 2, name: '账号' },
+    pwd: { required: true, password: true, 'op_edit': 0, name: '密码' },
+    name: { required: true, rangelength: [6, 64], name: '姓名' },
+    nick_name: { rangelength: [6, 128], name: '昵称' },
+    phone: { rangelength: [6, 16], digits: true, name: '电话' },
+    age: { digits: true, range: [1, 200], name: '年龄' },
+    email: { email: true, rangelength: [8, 128], name: '邮箱' },
+    address: { rangelength: [6, 128], name: '地址' },
   },
   search: {
-    create_time: { date: true },
+    create_time: { date: true, name: '创建时间' },
   },
 }, {
   create_time: (item, filter) => {

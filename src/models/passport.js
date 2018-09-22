@@ -31,6 +31,15 @@ export default {
         type: 'main/init',
       });
     },
+    *changePassword({ payload, callback }, { call }) {
+      const response = yield call(rqPassport.changePassword, payload);
+      if (response) {
+        showOpsNotification(response);
+        if (response.success) {
+          callback();
+        }
+      }
+    },
   },
 
   reducers: {

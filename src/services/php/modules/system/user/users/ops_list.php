@@ -35,6 +35,7 @@ function list_users(&$msg, &$data) {
             'condition' => array(
                 'fields' => array(
                     'name' => 'like',
+                    'account' => 'like',
                     'avatar' => 'set_avatar_condition',
                     'gender' => array('s' => array('<>', 'x')),
                     'create_time' => '>=',

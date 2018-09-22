@@ -33,6 +33,16 @@ export function ip(e) {
   }
 }
 
+export function ipEx(e) {
+  if (e.charCode === 42) {
+    if (!e.target.value) return;
+    return prevent(e);
+  }
+  if ((e.charCode < 48 || e.charCode > 57) && e.charCode !== 46) {
+    return prevent(e);
+  }
+}
+
 export function letters(e) {
   if (!((e.charCode >= 65 && e.charCode <= 90) || (e.charCode >= 97 && e.charCode <= 122))) {
     return prevent(e);

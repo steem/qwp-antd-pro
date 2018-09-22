@@ -19,7 +19,6 @@ function edit_user(&$msg, &$data) {
         array('id', $id),
         array('editable', 'y')
     ));
-    $msg = L('Save user info successfully');
 }
 qwp_set_ops_process('edit_user', true);
 qwp_set_form_validator('user', 'edit');

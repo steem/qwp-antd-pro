@@ -9,7 +9,7 @@ module.exports = {
 '/sample/result': {name: 'result', icon: 'check-circle-o'},
 '/system': {name: 'system'},
 '/system/settings': {name: 'settings', icon: 'setting'},
-'/system/user': {name: 'user'},
+'/system/user': {name: 'user', icon: 'user'},
 '/portal': {name: 'portal', page: false},
 '/sample/dashboard/workplace': {name: 'workplace', page: false},
 '/sample/dashboard/monitor': {name: 'monitor', page: false},

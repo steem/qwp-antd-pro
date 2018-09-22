@@ -47,8 +47,8 @@ export default {
 
       if (appRes.success && appRes.data) {
         const { lang, ...settings } = appRes.data
+        if (lang) localization.set(lang);
         importFormRules(settings);
-        if (lang) localization.set(lang, put);
         yield put({
           type: 'updateState',
           payload: {

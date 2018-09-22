@@ -65,6 +65,20 @@ export function getTimeDistance(type) {
   }
 }
 
+export function getTimePass(delta) {
+  const t = parseInt(delta, 10);
+
+  if (t < 60) {
+    return t + ' 秒';
+  } else if (t < 60 * 60) {
+    return (t / 60) + ' 分钟';
+  } else if (t < 24 * 60 * 60) {
+    return (t / (60 * 60)) + ' 小时';
+  }
+
+  return (t / (24 * 60 * 60)) + ' 天';
+}
+
 export function getPlainNode(nodeList, parentPath = '') {
   const arr = [];
   nodeList.forEach(node => {
@@ -244,16 +258,6 @@ export function updateConfig(v) {
   config.layout.changed = true;
 }
 
-export function convertBitSize(s) {
-  s = parseInt(s, 10);
-  if (s >= 1024 * 1024 * 1024) {
-    s = Math.round(s / (1024 * 1024 * 1024)) + ' TB';
-  } else if (s >= 1024 * 1024) {
-    s = Math.round(s / (1024 * 1024)) + ' GB';
-  } else if (s >= 1024) {
-    s = Math.round(s / 1024) + ' MB';
-  } else {
-    s += ' B';
-  }
-  return s;
+export function $noop() {
+  
 }

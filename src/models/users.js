@@ -45,9 +45,9 @@ export default {
       const appRes = yield call(userService.$);
 
       if (appRes.success && appRes.data) {
-        const { lang, ...settings } = appRes.data
+        const { lang, ...settings } = appRes.data;
+        if (lang) localization.set(lang);
         importFormRules(settings);
-        if (lang) localization.set(lang, put);
         yield put({
           type: 'updateState',
           payload: {
@@ -102,7 +102,7 @@ export default {
       const data = yield call(userService.create, payload)
       if (data) showOpsNotification(data, l('Create user'), l('New user has been created successfully'));
       if (data && data.success) {
-        callback();
+        if (callback) callback();
         const p = yield select(s => s.users.data.pagination);
         yield call(fetchUsers, call, put, p, true);
       }
@@ -112,7 +112,7 @@ export default {
       const data = yield call(userService.update, payload)
       if (data) showOpsNotification(data, l('Edit user information'), l('User information is updated successfully'))
       if (data && data.success) {
-        callback();
+        if (callback) callback();
         const p = yield select(s => s.users.data.pagination);
         yield call(fetchUsers, call, put, p, true);
       }

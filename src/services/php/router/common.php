@@ -163,7 +163,6 @@ function qwp_render_app_settings(&$app_settings = null, $m = null)
         $prefix = 'form_';
         $app_root = $MODULE_ROOT;
         if (!QWP_PACK_ALL_LANG) {
-            $lang = null;
             qwp_try_load_lang_for_module($MODULE_URI, $lang);
             if ($lang) $app_settings['lang'][] = array($MODULE_URI, $lang);
         }

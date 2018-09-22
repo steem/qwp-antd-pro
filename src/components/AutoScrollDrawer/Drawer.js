@@ -4,8 +4,8 @@ import { Scrollbars } from 'react-custom-scrollbars';
 import { sizer, elements } from 'utils/layout';
 import styles from 'utils/utils.less';
 
-function getMaxHeight(footerHeight) {
-  return window.innerHeight - (76 + (footerHeight || 50));
+function getMaxHeight(footer, footerHeight) {
+  return window.innerHeight - (76 + (footer ? (footerHeight || 50) : 0));
 }
 
 export default class AutoScrollDrawer extends React.Component {
@@ -14,7 +14,7 @@ export default class AutoScrollDrawer extends React.Component {
     super(props);
 
     this.state = {
-      height: getMaxHeight(!!props.footer),
+      height: getMaxHeight(this.props.footer, this.props.footerHeight),
     };
   }
 
@@ -28,7 +28,7 @@ export default class AutoScrollDrawer extends React.Component {
 
   updateSize() {
     this.setState({
-      height: getMaxHeight(this.props.footer ? this.props.footerHeight : 0),
+      height: getMaxHeight(this.props.footer, this.props.footerHeight),
     });
   }
 

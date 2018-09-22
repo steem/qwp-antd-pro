@@ -13,7 +13,7 @@ $app_settings['user'] = array(
     'name' => $USER->name,
     'role' => $USER->role,
     'roleName' => $USER->role_name,
-    'avatar' => 'user.png',
+    'avatar' => 'avatar.png',
     'createTime' => $USER->create_time ? $USER->create_time : '--',
     'isLogined' => $USER->is_logined,
 );

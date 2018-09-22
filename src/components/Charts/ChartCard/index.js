@@ -28,6 +28,8 @@ const ChartCard = ({
   total,
   footer,
   children,
+  bodyStyle,
+  titleTextAlign,
   ...rest
 }) => {
   const content = (
@@ -37,8 +39,8 @@ const ChartCard = ({
           [styles.chartTopMargin]: !children && !footer,
         })}
       >
-        <div className={styles.avatar}>{avatar}</div>
-        <div className={styles.metaWrap}>
+        <div style={{textAlign: titleTextAlign || 'left'}}>
+          <div className={styles.avatar}>{avatar}</div>
           <div className={styles.meta}>
             <span className={styles.title}>{title}</span>
             <span className={styles.action}>{action}</span>
@@ -64,7 +66,7 @@ const ChartCard = ({
   );
 
   return (
-    <Card loading={loading} bodyStyle={{ padding: '20px 24px 8px 24px' }} {...rest}>
+    <Card loading={loading} bodyStyle={bodyStyle || { padding: '20px 24px 8px 24px' }} {...rest}>
       {content}
     </Card>
   );

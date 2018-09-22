@@ -11,7 +11,7 @@ const acls = require('./services/data/acls_not_login')
 const settings = {
   success: true,
   data: {
-    default: '/portal',
+    default: 'portal',
     enableHeaderNav: true,
     lang: [
       ['/', L[lang]],
@@ -35,7 +35,6 @@ const settings = {
           href: 'http://ant.design',
         },
       ],
-      copyright: '2018 QWP, INC.',
     },
     headerSearcher: {
       placeholder: '站内搜索',

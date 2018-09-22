@@ -7,8 +7,9 @@ import {
   Select,
 } from 'antd';
 import AutoSizeDialog from 'components/Dialog';
+import FormItemEx from 'components/Helper/FormItem';
 import DigitsInput from 'components/Helper/DigitsInput';
-import { createSubmitHandler, getFieldDecorator, isFileValid } from 'utils/form';
+import { createSubmitHandler, isFileValid } from 'utils/form';
 import { getFileUploadUrl, getUserAvatarUrl } from 'requests/user';
 import { showOpsNotification, showErrorMessage } from 'utils/utils';
 import { l } from 'utils/localization';
@@ -104,6 +105,14 @@ export default class UserDialog extends PureComponent {
       })
     }
 
+    const formItemProps = {
+      labelCol: { span: 5 },
+      wrapperCol: { span: 15 },
+      form,
+      settings,
+      formName,
+      values,
+    };
     return (
       <AutoSizeDialog 
         title={isEdit ? '编辑用户信息' : '创建新用户'}
@@ -113,39 +122,37 @@ export default class UserDialog extends PureComponent {
         onCancel={() => handleModalVisible(false)}
       >
         {!isEdit && (
-        <FormItem labelCol={{ span: 5 }} wrapperCol={{ span: 15 }} label="账号">
-          {getFieldDecorator(form, settings, formName, 'account', values)(<Input placeholder="请输入" disabled={isEdit} />)}
-        </FormItem>)}
-        <FormItem labelCol={{ span: 5 }} wrapperCol={{ span: 15 }} label="密码">
-          {getFieldDecorator(form, settings, formName, 'pwd', values, isEdit ? 'edit' : false)(<Input type="password" placeholder="请输入" />)}
-        </FormItem>
-        <FormItem labelCol={{ span: 5 }} wrapperCol={{ span: 15 }} label="角色">
-          {getFieldDecorator(form, settings, formName, 'role', values)(
-            <Select placeholder="请选择角色" style={{ width: '100%' }}>
-              <Option value="">请选择角色</Option>
-              <Option value="1">超级管理员</Option>
-              <Option value="2">维护人员</Option>
-            </Select>
-          )}
-        </FormItem>
-        <FormItem labelCol={{ span: 5 }} wrapperCol={{ span: 15 }} label="姓名">
-          {getFieldDecorator(form, settings, formName, 'name', values)(<Input placeholder="请输入" />)}
-        </FormItem>
-        <FormItem labelCol={{ span: 5 }} wrapperCol={{ span: 15 }} label="昵称">
-          {getFieldDecorator(form, settings, formName, 'nick_name', values)(<Input placeholder="请输入" />)}
-        </FormItem>
-        <FormItem labelCol={{ span: 5 }} wrapperCol={{ span: 15 }} label="电话">
-          {getFieldDecorator(form, settings, formName, 'phone', values )(<Input placeholder="请输入" />)}
-        </FormItem>
-        <FormItem labelCol={{ span: 5 }} wrapperCol={{ span: 15 }} label="年龄">
-          {getFieldDecorator(form, settings, formName, 'age', values)(<DigitsInput placeholder="请输入" />)}
-        </FormItem>
-        <FormItem labelCol={{ span: 5 }} wrapperCol={{ span: 15 }} label="邮箱">
-          {getFieldDecorator(form, settings, formName, 'email', values)(<Input placeholder="请输入" />)}
-        </FormItem>
-        <FormItem labelCol={{ span: 5 }} wrapperCol={{ span: 15 }} label="地址">
-          {getFieldDecorator(form, settings, formName, 'address', values)(<Input placeholder="请输入" />)}
-        </FormItem>
+        <FormItemEx {...formItemProps} fieldName="account">
+          <Input placeholder="请输入" disabled={isEdit} />
+        </FormItemEx>)}
+        <FormItemEx {...formItemProps} fieldName="pwd">
+          <Input type="password" placeholder="请输入" />
+        </FormItemEx>
+        <FormItemEx {...formItemProps} fieldName="role">
+          <Select placeholder="请选择角色" style={{ width: '100%' }}>
+            <Option value="">请选择角色</Option>
+            <Option value="1">超级管理员</Option>
+            <Option value="2">维护人员</Option>
+          </Select>
+        </FormItemEx>
+        <FormItemEx {...formItemProps} fieldName="name">
+          <Input placeholder="请输入" />
+        </FormItemEx>
+        <FormItemEx {...formItemProps} fieldName="nick_name">
+          <Input placeholder="请输入" />
+        </FormItemEx>
+        <FormItemEx {...formItemProps} fieldName="phone">
+          <Input placeholder="请输入" />
+        </FormItemEx>
+        <FormItemEx {...formItemProps} fieldName="age">
+          <DigitsInput placeholder="请输入" />
+        </FormItemEx>
+        <FormItemEx {...formItemProps} fieldName="email">
+          <Input placeholder="请输入" />
+        </FormItemEx>
+        <FormItemEx {...formItemProps} fieldName="address">
+          <Input placeholder="请输入" />
+        </FormItemEx>
         <FormItem labelCol={{ span: 5 }} wrapperCol={{ span: 15 }} label="头像">
           <Upload 
             name="avatar"

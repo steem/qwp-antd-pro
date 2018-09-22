@@ -42,9 +42,9 @@ function applySettings(settings, passport, put) {
 
   if (settings.default) defaultCompnent = uri.component(settings.default);
   if (passport) {
+    if (passport.lang) localization.set(passport.lang);
     importFormRules(passport);
     mergeFormRules(settings, passport);
-    if (passport.lang) localization.set(passport.lang, put);
   } else {
     passport = {};
   }

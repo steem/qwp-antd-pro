@@ -20,6 +20,7 @@ import uri from 'utils/uri';
 import config from 'utils/config';
 import { l } from 'utils/localization';
 import EntryDialog from '../common/EntryDialog';
+import PasswordDialog from './passport/PasswordDialog';
 import logo from '../assets/logo.svg';
 
 const { Content, Header, Footer } = Layout;
@@ -59,6 +60,7 @@ class AppLayout extends React.Component {
     showEntryDialog: true,
     height: 100,
     layout: {},
+    dialogPasswordVisible: false,
   };
 
   getChildContext() {
@@ -118,8 +120,11 @@ class AppLayout extends React.Component {
 
   getContentHeight(layout) {
     const sc = document.getElementById('content-scroll');
+    let offset = 0;
 
-    return document.body.clientHeight - ((layout || this.state.layout).noHeader ? 0 : sc.offsetTop);
+    if (!((layout || this.state.layout).noHeader)) offset += sc.offsetTop;
+
+    return document.body.clientHeight - offset;
   }
 
   updateSize = () => {
@@ -152,6 +157,8 @@ class AppLayout extends React.Component {
       if (uri.current() !== config.loginPath) {
         this.props.dispatch(routerRedux.push(config.loginPath));
       }
+    } else if (key === 'password') {
+      this.handleDialogPasswordVisible(true);
     }
   };
 
@@ -169,6 +176,12 @@ class AppLayout extends React.Component {
     });
   };
 
+  handleDialogPasswordVisible = visible => {
+    this.setState({
+      dialogPasswordVisible: !!visible,
+    });
+  };
+
   handleIconClick = (e) => {
     const key = e.currentTarget.getAttribute('tag');
 
@@ -180,10 +193,10 @@ class AppLayout extends React.Component {
   render() {
     const {
       collapsed,
-      fetchingNotices,
       routerData,
       location,
       main,
+      loading,
     } = this.props;
     const {
       layout,
@@ -199,6 +212,12 @@ class AppLayout extends React.Component {
       });
     }
     const routers = getRoutes(uri.rootComponent(), routerData);
+    const dialogPasswordProps = {
+      settings: main.settings,
+      dispatch: this.props.dispatch,
+      handleModalVisible: this.handleDialogPasswordVisible,
+      loading,
+    }
     const pageContent = (
       <Layout>
         {main.hasSiderBar && (
@@ -219,7 +238,7 @@ class AppLayout extends React.Component {
               logoText={main.settings.productName}
               hideLogoText={main.hideLogoText}
               main={main}
-              fetchingNotices={fetchingNotices}
+              fetchingNotices={loading.effects['main/fetchNotices']}
               notices={main.notices}
               collapsed={collapsed}
               isMobile={this.state.isMobile}
@@ -256,12 +275,12 @@ class AppLayout extends React.Component {
               { main.failed && <Switch><Route render={Server500Error} /></Switch> }
             </Content>
             {!layout.noFooter && (
-              <Footer style={{ padding: 0 }}>
+              <Footer style={{ padding: 0 }} id="footer">
                 <GlobalFooter
                   links={main.settings.footer.links}
                   copyright={
                     <Fragment>
-                      Copyright <Icon type="copyright" /> {main.settings.footer.copyright}
+                      {l('footerText') === 'footerText' ? config.footerText : l('footerText') }
                     </Fragment>
                   }
                 />
@@ -273,6 +292,7 @@ class AppLayout extends React.Component {
               dispatch={this.props.dispatch}
               handleModalVisible={this.hideEntryDialog}
             />)}
+          {this.state.dialogPasswordVisible && <PasswordDialog {...dialogPasswordProps} modalVisible={this.state.dialogPasswordVisible} />}
         </Layout>
       </Layout>
     );
@@ -289,6 +309,6 @@ class AppLayout extends React.Component {
 
 export default connect(({ main, loading }) => ({
   collapsed: main.collapsed,
-  fetchingNotices: loading.effects['main/fetchNotices'],
   main,
+  loading,
 }))(AppLayout);

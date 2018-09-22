@@ -3,7 +3,7 @@ import { Input } from 'antd';
 import * as keyboardFilters from 'utils/keyboard';
 
 
-class DigitsInput extends React.Component {
+class DigitsInput extends React.PureComponent {
 
   render () {
 

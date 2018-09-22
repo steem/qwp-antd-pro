@@ -1,13 +1,14 @@
 import _ from 'lodash';
 import moment from 'moment';
+import { showErrorMessage } from './utils';
 import { l } from './localization';
 
 let validators = {};
 const validatorDesc = {
   digits: 'Must be digits',
-  letters: 'Must be letters',
-  alphanumeric: 'Must be letters',
-  alphanumeric_ex: 'Must be letters',
+  letters: 'Must be letters and digits',
+  alphanumeric: 'Must be Letters, digits, and minus sign',
+  alphanumeric_ex: 'Must be Letters, digits, minus sign and dot mark',
   url: 'Must be valid url',
   password: 'Password is too simple',
   email: 'Must be valid email',
@@ -82,7 +83,7 @@ function createRegExValidatorByArray (rules) {
       if (rs[1][i]) r = new RegExp(rs[0][i], rs[1][i]);
       else r = new RegExp(rs[0][i]);
       if (!r.test(value)) {
-        callback(new Error(validatorDesc.general));
+        callback(new Error(rule.message || validatorDesc.general));
         return;
       }
     }
@@ -98,7 +99,7 @@ function createRegExValidator(p, rules) {
     }
     const r = new RegExp(p);
     if (!r.test(value)) {
-      callback(new Error(validatorDesc.general));
+      callback(new Error(rule.message || validatorDesc.general));
       return;
     }
     callback();
@@ -130,7 +131,7 @@ function fileValidator (rule, fileList, callback) {
 }
 
 export function isFileValid(settings, formName, name, fileList) {
-  const form = settings.formRules ? settings.formRules[formName] : {};
+  const form = settings.formRules && settings.formRules[formName] && settings.formRules[formName].$ ? settings.formRules[formName].$ : {};
 
   if (!form[name] || !form[name].rules) return true;
   for (const rule of form[name].rules) {
@@ -246,7 +247,7 @@ function fillInitialValue(r, itemType, values, name) {
 export function createFieldRules (settings, formName, name, values, op) {
   const dv = { rules: [] };
   let r = dv;
-  const form = settings.formRules && settings.formRules[formName] ? settings.formRules[formName] : {};
+  const form = settings.formRules && settings.formRules[formName] && settings.formRules[formName].$ ? settings.formRules[formName].$ : {};
   let itemType = false;
 
   if (form[name]) {
@@ -268,6 +269,29 @@ export function getFieldDecorator(form, settings, formName, name, values, op) {
   return form.getFieldDecorator(...args);
 }
 
+export function getFieldDecoratorEx({form, settings, formName, values}, fieldName, op) {
+  return getFieldDecorator(form, settings, formName, fieldName, values, op);
+}
+
+export function getFormFieldLabel(settings, formName, name) {
+  if (!formName) return l(name);
+
+  const form = settings.formRules && settings.formRules[formName] ? settings.formRules[formName] : {};
+
+  if (form[name] && form[name].name) return form[name].name;
+
+  const fn = formName + '.' + name;
+  const t = l(fn);
+
+  if (t !== fn) return t;
+
+  return l(name);
+}
+
+export function getFormFieldLabelEx({settings, formName}, fieldName) {
+  return getFormFieldLabel(settings, formName, fieldName);
+}
+
 function isMomentObject(o) {
   return o && o.constructor && o.constructor.name === 'Moment';
 }
@@ -277,7 +301,7 @@ function getDateTimeValue(o) {
 }
 
 function formalizedFormValues(values, dst, formRules, formName) {
-  const rule = formRules && formName && formRules[formName] ? formRules[formName] : false;
+  const rule = formRules && formName && formRules[formName] && formRules[formName].$ ? formRules[formName].$ : false;
 
   for (const k in values) {
     if (values[k] && values[k].constructor) {
@@ -345,7 +369,23 @@ export function submitForm ({form, onSubmit, dataKey, formRules, formName}) {
     }, resetFields)
   });
 }
+function checkEqualFields(formRules, formName, values) {
+  if (!formRules || !formName) return;
 
+  const f = formRules[formName];
+
+  for (const name in f) {
+    if (name === '$') continue;
+    const formRule = f[name];
+
+    if (formRule['=']) {
+      if (values[name] !== values[formRule['=']]) {
+        showErrorMessage(l('The two field {0} and {1} must be same.', l(name), l(formRule['='])));
+        return false;
+      }
+    }
+  }
+}
 export function createSubmitHandler ({form, onSubmit, activeFields, dataKey, beforeSubmit, formRules, formName}) {
   const resetFields = () => form.resetFields();
   if (activeFields) {
@@ -353,9 +393,11 @@ export function createSubmitHandler ({form, onSubmit, activeFields, dataKey, bef
       e.preventDefault();
       const fields = _.isFunction(activeFields) ? activeFields() : activeFields;
       form.validateFieldsAndScroll(fields, { force: true }, (err, values) => {
+        if (err) return;
         if (formName && values[formName]) values = values[formName];
         const fvs = {};
         formalizedFormValues(values, fvs, formRules, formName);
+        if (checkEqualFields(formRules, formName, values) === false) return;
         if (beforeSubmit && beforeSubmit(fvs) === false) return;
         if (!dataKey) dataKey = 'f';
         onSubmit(err, {
@@ -367,9 +409,11 @@ export function createSubmitHandler ({form, onSubmit, activeFields, dataKey, bef
   return (e) => {
     e.preventDefault();
     form.validateFieldsAndScroll((err, values) => {
+      if (err) return;
       if (formName && values[formName]) values = values[formName];
       const fvs = {};
       formalizedFormValues(values, fvs, formRules, formName);
+      if (checkEqualFields(formRules, formName, values) === false) return;
       if (beforeSubmit && beforeSubmit(fvs) === false) return;
       if (!dataKey) dataKey = 'f'
       onSubmit(err, {
@@ -400,7 +444,7 @@ function initErrorMessages() {
 }
 
 const ignoredRules = ['_msg', '_sqlchar', 'mixed', 
-  '_from', 'array',
+  '_from', 'array', 'name',
   'required', 'ui'].reduce((pre, cur) => {pre[cur] = true; return pre;}, {});
 
 function createRule(r, rules, ruleName, ruleValue) {
@@ -464,7 +508,10 @@ export function importFormRules (settings) {
   initErrorMessages();
   for (const p in settings.formRules) {
     const f = settings.formRules[p]
+    f.$ = {};
     for (const name in f) {
+      if (name === '$') continue;
+      if (name === 'name') f.name = l(f.name);
       const formRule = f[name];
 
       if (!_.isUndefined(formRule.ui)) {
@@ -509,7 +556,7 @@ export function importFormRules (settings) {
           if (!r.message) r.message = msg;
           if (objectType) r.type = objectType;
         });
-        f[name] = {rule: newRules, itemType};
+        f.$[name] = {rule: newRules, itemType};
       } else {
         delete f[name]
       }

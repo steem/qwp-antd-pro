@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import { l } from './localization';
 import config from './config';
 
@@ -17,9 +18,22 @@ function createColumn(item, colOptions, context) {
     else col.sorter = true;
   }
   if (colOptions) {
-    if (colOptions.render[dataIndex] || colOptions.render[item[4]]) {
-      const render = colOptions.render[item[4]] || colOptions.render[dataIndex];
-      col.render = context ? (t, r) => render(t, r, context) : render;
+    if (colOptions.render) {
+      if (colOptions.render[dataIndex] || colOptions.render[item[4]]) {
+        const render = colOptions.render[item[4]] || colOptions.render[dataIndex];
+        col.render = context ? (t, r) => render(t, r, context) : render;
+      }
+    }
+    if (colOptions.filters && colOptions.filters[dataIndex]) {
+      const filter = colOptions.filters[dataIndex];
+
+      if (_.isArray(filter[0])) {
+        col.filters = filter[0];
+      } else {
+        col.filterDropdown = filter[0];
+        if (filter[2]) col.onFilterDropdownVisibleChange = filter[2];
+      }
+      col.onFilter = filter[1];
     }
     if (item.length >= 6) {
       col.className = colOptions.className[item[5] === true ? dataIndex : item[5]];

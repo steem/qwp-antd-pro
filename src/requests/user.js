@@ -3,7 +3,7 @@ import uri from 'utils/uri';
 
 const mock = true;
 const baseUri = {
-  m: uri.component('system', 'user'),
+  m: uri.component('system', 'user', 'users'),
   restfulApi: false,
   mock,
 };

@@ -1,7 +1,7 @@
 import React from 'react';
+import { Icon } from 'antd';
 import classNames from 'classnames';
 import styles from './index.less';
-import { Icon } from 'antd';
 
 const GlobalFooter = ({ className, links, copyright }) => {
   const clsString = classNames(styles.globalFooter, className);
