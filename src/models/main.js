@@ -7,9 +7,9 @@ import * as rqApp from 'requests/app';
 import config from 'utils/config';
 import * as localization from 'utils/localization';
 import uri from 'utils/uri';
-import { toTableData } from 'utils/table';
 import { importFormRules, mergeFormRules, setValidators } from 'utils/form';
-import { showOpsNotification, updateConfig } from 'utils/utils';
+import { updateConfig } from 'utils/utils';
+import { notifyLogin } from 'utils/passport';
 
 const { l } = localization;
 
@@ -178,6 +178,7 @@ export default {
         payload: newState,
       });
       yield checkNavigation(newState, put);
+      notifyLogin(newState);
     },
 
     *fetchNotices(_, { call, put }) {
@@ -202,7 +203,7 @@ export default {
       };
       updateConfig({
         noMargin: false,
-        noFooter: false,
+        noFooter: !uri.isPassportComponent(),
         noHeader: false,
       });
       if (state.inited) {

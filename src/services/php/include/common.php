@@ -634,7 +634,7 @@ function join_paths() {
     foreach ($args as $arg) {
         $paths = array_merge($paths, (array)$arg);
     }
-    return implode(DIRECTORY_SEPARATOR, $paths);
+    return implode('/', $paths);
 }
 // date & time related functions
 function get_day_start($t = 0) {
@@ -1525,6 +1525,15 @@ function get_valid_file_path(&$path) {
     }
 
     return true;
+}
+function are_keys_empty(&$arr, $keys) {
+    foreach ($keys as $key) {
+        if (!isset($arr[$key]) || !$arr[$key]) {
+            return true;
+        }
+    }
+
+    return false;
 }
 function create_password() {
     $s = random_string();

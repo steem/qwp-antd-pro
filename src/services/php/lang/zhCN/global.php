@@ -89,5 +89,7 @@ $lang = array(
   'Role' => '角色',
   'Nick Name' => '昵称',
   'Create Time' => '创建时间',
+  '{0} is required' => '{0}必须填写',
+  'This field' => '该项',
 
 );

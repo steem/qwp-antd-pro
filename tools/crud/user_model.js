@@ -42,12 +42,6 @@ export default {
     selectedRows: [],
   },
 
-  subscriptions: {
-    setup({ dispatch }) {
-      dispatch({ type: 'init' });
-    },
-  },
-
   effects: {
 
     *init (_, { call, put }) {

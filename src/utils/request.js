@@ -1,9 +1,8 @@
 import fetch from 'dva/fetch';
 import _ from 'lodash';
 import { showOpsNotification, showErrorMessage } from './utils';
-import uri from './uri';
+import config from './config';
 import { l } from './localization';
-import store from '../index';
 
 const codeMessage = {
   400: '发出的请求有错误，服务器没有进行新建或修改数据的操作。',
@@ -36,7 +35,7 @@ function checkStatus(response) {
 function showError(e) {
   if (e.name === -1) {
     showErrorMessage(e.response && e.response.message ? e.response.message : l('Please login'));
-    store.dispatch({
+    config.store.dispatch({
       type: 'main/init',
     });
     return;

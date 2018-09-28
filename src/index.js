@@ -8,7 +8,7 @@ import createHistory from 'history/createHashHistory';
 import createLoading from 'dva-loading';
 import 'moment/locale/zh-cn';
 import './rollbar';
-
+import config from './utils/config';
 import './index.less';
 // 1. Initialize
 const app = dva({
@@ -28,4 +28,4 @@ app.router(require('./config').default);
 // 5. Start
 app.start('#root');
 
-export default app._store; // eslint-disable-line
+config.store = app._store;

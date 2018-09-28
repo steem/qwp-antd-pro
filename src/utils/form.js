@@ -71,6 +71,60 @@ function isOptionalRule(rules) {
   return true;
 }
 
+export function createGroupFormItemValidateStatus(groups) {
+  const state = {
+    _names: {},
+  };
+
+  const ret = [];
+
+  for (const n of groups) {
+    const name = n.join('_');
+
+    ret.push(name);
+    n.reduce((p, item) => {
+      p[item] = name;
+      return p;
+    }, state._names);
+    state[name] = {
+      help: '',
+      validateStatus: '',
+    }
+  }
+
+  ret.push(state);
+
+  return ret;
+}
+
+export function generateGroupFormItemValidateStatus(err, state) {
+  const newState = {};
+
+  if (err) {
+    for (const k in err.rules) {
+      const n = state._names[k];
+
+      if (n) {
+        if (!newState[n]) newState[n] = {};
+        newState[n].help = err.rules[k].errors[0].message;
+        newState[n].validateStatus = 'error';
+      }
+    }
+  }
+  for (const k in state) {
+    if (k === '_names') continue;
+    if (!newState[k]) {
+      newState[k] = state[k];
+    }
+  }
+
+  return newState;
+}
+
+export function getGroupFormItemValidateStatus(name, state) {
+  return state[name] || {};
+}
+
 function createRegExValidatorByArray (rules) {
   return  (rule, value, callback) => {
     if (!value && isOptionalRule(rules)) {
@@ -393,12 +447,12 @@ export function createSubmitHandler ({form, onSubmit, activeFields, dataKey, bef
       e.preventDefault();
       const fields = _.isFunction(activeFields) ? activeFields() : activeFields;
       form.validateFieldsAndScroll(fields, { force: true }, (err, values) => {
-        if (err) return;
         if (formName && values[formName]) values = values[formName];
         const fvs = {};
         formalizedFormValues(values, fvs, formRules, formName);
         if (checkEqualFields(formRules, formName, values) === false) return;
-        if (beforeSubmit && beforeSubmit(fvs) === false) return;
+        if (beforeSubmit && beforeSubmit(fvs, err) === false) return;
+        if (err) return;
         if (!dataKey) dataKey = 'f';
         onSubmit(err, {
           [dataKey]: fvs,
@@ -409,12 +463,12 @@ export function createSubmitHandler ({form, onSubmit, activeFields, dataKey, bef
   return (e) => {
     e.preventDefault();
     form.validateFieldsAndScroll((err, values) => {
-      if (err) return;
       if (formName && values[formName]) values = values[formName];
       const fvs = {};
       formalizedFormValues(values, fvs, formRules, formName);
       if (checkEqualFields(formRules, formName, values) === false) return;
-      if (beforeSubmit && beforeSubmit(fvs) === false) return;
+      if (beforeSubmit && beforeSubmit(fvs, err) === false) return;
+      if (err) return;
       if (!dataKey) dataKey = 'f'
       onSubmit(err, {
         [dataKey]: fvs,
@@ -448,8 +502,6 @@ const ignoredRules = ['_msg', '_sqlchar', 'mixed',
   'required', 'ui'].reduce((pre, cur) => {pre[cur] = true; return pre;}, {});
 
 function createRule(r, rules, ruleName, ruleValue) {
-  if (ignoredRules[ruleName]) return false;
-
   if (ruleName === 'file') {
     r.itemType = 'file';
     r.validator = fileValidator;
@@ -511,7 +563,6 @@ export function importFormRules (settings) {
     f.$ = {};
     for (const name in f) {
       if (name === '$') continue;
-      if (name === 'name') f.name = l(f.name);
       const formRule = f[name];
 
       if (!_.isUndefined(formRule.ui)) {
@@ -525,8 +576,15 @@ export function importFormRules (settings) {
       let objectType = false;
       let firstRule = true;
 
-      newRules.rules.push({required: !!formRule.required, default: !!formRule.required});
+      if (formRule.name) formRule.name = l(formRule.name);
+      newRules.rules.push({
+        required: !!formRule.required,
+        default: !!formRule.required,
+        message: l('{0} is required', formRule.name || l('This field')),
+      });
       for (const ruleName in formRule) {
+        if (ignoredRules[ruleName]) continue;
+
         const ruleValue = formRule[ruleName];
         let r;
         let isNewCreated;

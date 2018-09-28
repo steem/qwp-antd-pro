@@ -10,7 +10,7 @@ export function digit(e) {
 }
 
 export function number(e) {
-  if (e.charCode === 48 && !e.target.value) return;
+  if (e.charCode === 48 && !e.target.value) return prevent(e);
   if (e.charCode < 48 || e.charCode > 57) {
     return prevent(e);
   }
@@ -23,6 +23,12 @@ export function numberEx(e) {
   }
   if (e.target.value === '*') {
     return prevent(e);
+  }
+  for (let i = 0, cnt = e.target.value.length; i < cnt; i += 1) {
+    const d = e.target.value.charCodeAt(i);
+    if (d < 48 || d > 57) {
+      return prevent(e);
+    }
   }
   return number(e);
 }

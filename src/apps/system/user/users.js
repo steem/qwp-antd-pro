@@ -44,6 +44,9 @@ export default class TableList extends PureComponent {
   componentDidMount() {
     const { dispatch } = this.props;
     dispatch({
+      type: 'users/init',
+    });
+    dispatch({
       type: 'users/fetch',
       payload: {},
     });
