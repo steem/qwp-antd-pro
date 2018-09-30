@@ -10,7 +10,6 @@ module.exports = {
   passportRoot: '/passport',
   loginPath: '/passport/login',
   portalRoot: '/portal',
-  isDesktop: false,
   locale: 'zhCN',
   disableRegister: true,
   showHeaderItemsWhenNotLogin: false,

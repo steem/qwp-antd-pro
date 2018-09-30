@@ -29,6 +29,14 @@ function addExceptionRouter(acls) {
   acls['/exception/500'] = {name: 'exception', page: 'true'};
 }
 
+function noFooter() {
+  if (uri.isPassportComponent()) return false;
+
+  const p = uri.current();
+
+  return p !== '/' && !p.startsWith('/exception');
+}
+
 function initSettings(settings, put) {
   if (!settings.superApps) settings.superApps = [];
   if (settings.lang) localization.set(settings.lang, put);
@@ -203,7 +211,7 @@ export default {
       };
       updateConfig({
         noMargin: false,
-        noFooter: !uri.isPassportComponent(),
+        noFooter: noFooter(),
         noHeader: false,
       });
       if (state.inited) {

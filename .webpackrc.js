@@ -1,5 +1,4 @@
 const path = require('path');
-const config = require('./src/utils/config');
 
 export default {
   entry: 'src/index.js',
@@ -27,8 +26,8 @@ export default {
   html: {
     template: './src/index.ejs',
   },
-  disableDynamicImport: config.isDesktop || false,
-  publicPath: '/',
+  disableDynamicImport: false,
+  publicPath: './assets/',
   hash: true,
   proxy: {
     '/antd/services': {

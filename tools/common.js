@@ -9,6 +9,7 @@ function getFileContent(p) {
 
 module.exports = {
   projectBasePath,
+  distPath: path.join(projectBasePath, 'dist'),
   appsPath: path.join(projectBasePath, 'src', 'apps'),
   modelsPath: path.join(projectBasePath, 'src', 'models'),
   requestsPath: path.join(projectBasePath, 'src', 'requests'),

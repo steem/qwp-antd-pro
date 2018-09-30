@@ -26,7 +26,8 @@
     "code:crud": "node ./tools/crud.js",
     "code:list": "node ./tools/list.js",
     "code:php": "node ./tools/php/OpsGenerator.js",
-    "save-acls:php": "php ./tools/php/save_acls.php"
+    "save-acls:php": "php ./tools/php/save_acls.php",
+    "publish": "npm run build && node ./tools/publish.js"
   },
   "dependencies": {
     "@antv/data-set": "^0.9.0",
@@ -62,7 +63,8 @@
     "@antv/g6-editor": "^1.0.4",
     "rc-color-picker": "^1.2.6",
     "keymaster": "^1.6.2",
-    "spritejs": "^2.5.2"
+    "spritejs": "^2.5.2",
+    "echarts": "^4.1.0"
   },
   "devDependencies": {
     "@babel/core": "7.0.0-beta.46",
