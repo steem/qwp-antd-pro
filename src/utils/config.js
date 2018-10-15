@@ -59,6 +59,7 @@ module.exports = {
       {
         name: 'password',
         text: '修改密码',
+        icon: 'key',
       },
       '',
       {

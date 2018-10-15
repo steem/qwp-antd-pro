@@ -27,7 +27,7 @@
     "code:list": "node ./tools/list.js",
     "code:php": "node ./tools/php/OpsGenerator.js",
     "save-acls:php": "php ./tools/php/save_acls.php",
-    "publish": "npm run build && node ./tools/publish.js"
+    "publish": " node ./tools/publish.js --prePublish=true && npm run build && node ./tools/publish.js"
   },
   "dependencies": {
     "@antv/data-set": "^0.9.0",

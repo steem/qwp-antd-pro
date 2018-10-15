@@ -27,7 +27,7 @@ export default {
     template: './src/index.ejs',
   },
   disableDynamicImport: false,
-  publicPath: './assets/',
+  publicPath: '/',
   hash: true,
   proxy: {
     '/antd/services': {
